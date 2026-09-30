@@ -396,7 +396,8 @@ const pass = document.getElementById('node-password').value.trim();
 
 if(!user || !pass) return alert("Credentials fields are required.");
 
-const structuredDummyEmail = ${user}@matrixnet.com;
+const structuredDummyEmail = `${user}@matrixnet.com`;
+
 
 if(!supabase) {
 
