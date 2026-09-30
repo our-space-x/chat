@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System Diagnostics</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+
+    :root {
+      --bg-dark: #030712;
+      --card-bg: rgba(10, 15, 30, 0.95);
+      --neon-cyan: #00f3ff;
+      --neon-pink: #ff007f;
+      --neon-blue: #0077ff;
+      --text-color: #e0f7fc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-color); height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+
+    /* --- FUTURISTIC LOCK SCREEN --- */
+    #stealth-overlay {
+      position: fixed; inset: 0; background: #02050a; z-index: 9999;
+      display: flex; justify-content: center; align-items: center;
+    }
+
+    .lock-card {
+      width: 90%; max-width: 380px; padding: 30px 20px;
+      border: 2px solid var(--neon-cyan); border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.4), inset 0 0 15px rgba(0, 243, 255, 0.1);
+      text-align: center; background: rgba(5, 12, 24, 0.9);
+      display: flex; flex-direction: column; gap: 20px;
+    }
+
+    .lock-card h2 {
+      font-family: 'Orbitron', sans-serif; font-size: 1.6rem; color: var(--neon-cyan);
+      letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    .lock-card input {
+      width: 100%; background: #06101e; border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan); padding: 12px; font-size: 1.1rem; border-radius: 6px;
+      text-align: center; letter-spacing: 3px; font-family: 'Orbitron', sans-serif; outline: none;
+    }
+
+    .lock-card button {
+      background: var(--neon-cyan); border: none; color: #000;
+      padding: 12px; font-size: 1.1rem; font-weight: 900; font-family: 'Orbitron', sans-serif;
+      border-radius: 6px; cursor: pointer; text-transform: uppercase;
+      box-shadow: 0 0 15px var(--neon-cyan); transition: 0.2s;
+    }
+
+    .lock-card button:hover { background: #fff; box-shadow: 0 0 25px #fff; }
+
+    /* --- CHAT ROOM APP --- */
+    #chat-app { width: 100%; max-width: 480px; height: 100vh; background: var(--card-bg); border: 1px solid rgba(0, 243, 255, 0.3); display: flex; flex-direction: column; }
+    
+    header {
+      padding: 14px 18px; background: rgba(3, 8, 18, 0.95);
+      border-bottom: 1px solid var(--neon-cyan); display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 243, 255, 0.2);
+    }
+
+    .header-title { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--neon-pink); text-shadow: 0 0 8px var(--neon-pink); }
+    .status-badge { font-size: 0.85rem; color: #00ffaa; text-shadow: 0 0 5px #00ffaa; }
+
+    #message-feed { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    
+    .msg { max-width: 78%; padding: 10px 14px; border-radius: 12px; font-size: 1rem; position: relative; word-break: break-word; }
+    .msg.me { align-self: flex-end; background: rgba(0, 119, 255, 0.2); border: 1px solid var(--neon-blue); border-bottom-right-radius: 2px; }
+    .msg.partner { align-self: flex-start; background: rgba(255, 0, 127, 0.2); border: 1px solid var(--neon-pink); border-bottom-left-radius: 2px; }
+    
+    .msg-meta { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 0.65rem; opacity: 0.7; margin-top: 4px; }
+    .ticks { color: #00f3ff; font-weight: bold; }
+
+    footer { padding: 12px; background: rgba(3, 8, 18, 0.95); border-top: 1px solid rgba(0, 243, 255, 0.3); display: flex; gap: 8px; align-items: center; }
+    footer input[type="text"] { flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--neon-cyan); border-radius: 20px; padding: 10px 16px; color: #fff; outline: none; }
+    footer button { background: var(--neon-pink); border: none; color: white; padding: 10px 18px; border-radius: 20px; font-weight: 700; font-family: 'Orbitron', sans-serif; cursor: pointer; box-shadow: 0 0 10px var(--neon-pink); }
+  </style>
+</head>
+<body>
+
+  <!-- Lock Screen -->
+  <div id="stealth-overlay">
+    <div class="lock-card">
+      <h2>SYSTEM LOCKED</h2>
+      <input type="password" id="passcode-input" placeholder="ENTER ACCESS CODE" maxlength="10" />
+      <button id="unlock-btn">ACCESS CHAT</button>
+    </div>
+  </div>
+
+  <!-- Chat UI -->
+  <div id="chat-app">
+    <header>
+      <div class="header-title">OUR SPACE 💖</div>
+      <div class="status-badge">● Online</div>
+    </header>
+
+    <div id="message-feed"></div>
+
+    <footer>
+      <input type="text" id="message-input" placeholder="Type a message..." />
+      <button id="send-btn">SEND</button>
+    </footer>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://qkushswsqifrajdiuynl.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_BaddnFvHZ9YBu4FxGJIbPg_KP4JN-l4";
+    
+    // Encrypted PIN check (sana7277)
+    const HASH_PIN = "c2FuYTcyNzc=";
+
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const overlay = document.getElementById('stealth-overlay');
+    const passInput = document.getElementById('passcode-input');
+    const unlockBtn = document.getElementById('unlock-btn');
+
+    function unlock() {
+      if (btoa(passInput.value) === HASH_PIN) {
+        overlay.style.display = 'none';
+        passInput.value = '';
+        loadMessages();
+        cleanupOldMessages();
+        if ('Notification' in window) Notification.requestPermission();
+      } else {
+        alert('ACCESS DENIED!');
+      }
+    }
+
+    unlockBtn.addEventListener('click', unlock);
+    passInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) overlay.style.display = 'flex';
+    });
+
+    const feed = document.getElementById('message-feed');
+    const input = document.getElementById('message-input');
+
+    function renderMsg(msg) {
+      const div = document.createElement('div');
+      const isMe = msg.sender === 'user1'; 
+      div.className = `msg ${isMe ? 'me' : 'partner'}`;
+      const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const statusTick = msg.status === 'read' ? '✓✓' : '✓';
+      
+      div.innerHTML = `
+        <div>${msg.content}</div>
+        <div class="msg-meta">
+          <span>${time}</span>
+          ${isMe ? `<span class="ticks">${statusTick}</span>` : ''}
+        </div>
+      `;
+
+      div.addEventListener('contextmenu', async (e) => {
+        e.preventDefault();
+        if (confirm("Delete this message?")) {
+          await db.from('messages').delete().eq('id', msg.id);
+          div.remove();
+        }
+      });
+
+      feed.appendChild(div);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    async function loadMessages() {
+      feed.innerHTML = '';
+      const { data } = await db.from('messages').select('*').order('created_at', { ascending: true });
+      if (data) data.forEach(renderMsg);
+    }
+
+    async function cleanupOldMessages() {
+      const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+      await db.from('messages').delete().lt('created_at', fifteenDaysAgo);
+    }
+
+    async function send() {
+      const txt = input.value.trim();
+      if (!txt) return;
+      input.value = '';
+      await db.from('messages').insert([{ content: txt, sender: 'user1', status: 'sent' }]);
+    }
+
+    document.getElementById('send-btn').addEventListener('click', send);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+
+    // Realtime Listener & Disguised Notifications
+    db.channel('messages_channel')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        const msg = payload.new;
+        renderMsg(msg);
+
+        // Jab user tab me nahi hoga (background me hoga), tabhi alert aayega
+        if (document.hidden && msg.sender !== 'user1') {
+          if (Notification.permission === 'granted') {
+            new Notification('sync alert', {
+              body: 'System sync pending...',
+              icon: 'https://cdn-icons-png.flaticon.com/512/561/561127.png'
+            });
+          }
+        }
+      })
+      .subscribe();
+  </script>
+</body>
+</html>
