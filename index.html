@@ -153,9 +153,10 @@
         <button class="gate-box" style="background:var(--neon-pink); color:#000;" onclick="terminateWebRTCLink()">DISCONNECT LINK</button>
     </div>
     <script>
-        const SUPABASE_URL = "https://supabase.co";
+        const SUPABASE_URL = "https://sqitlhjrsowwivldisgg.supabase.co";
         const SUPABASE_KEY = "sb_publishable_mx1ZD4koFZGH31QGM14V_Q_YxFuZAZX";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabaseClient;
 
         let loggedAgent = null;
         let selectedTargetNode = "";
