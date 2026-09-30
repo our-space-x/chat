@@ -3,113 +3,186 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>System Diagnostics</title>
+  <title>WhatsApp Web UI</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Rajdhani:wght@600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap');
 
     :root {
-      --bg-dark: #030712;
-      --card-bg: rgba(10, 15, 30, 0.98);
-      --neon-cyan: #00f3ff;
-      --neon-pink: #ff007f;
-      --neon-blue: #0077ff;
+      --wa-bg: #0b141a;
+      --wa-header: #202c33;
+      --wa-chat-bg: #0b141a;
+      --wa-my-msg: #005c4b;
+      --wa-other-msg: #202c33;
+      --wa-text: #e9edef;
+      --wa-subtext: #8696a0;
+      --wa-green: #00a884;
+      --wa-blue: #53bdeb;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; }
-    html, body { height: 100%; background-color: var(--bg-dark); color: #e0f7fc; overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    html, body { height: 100%; background-color: #111b21; color: var(--wa-text); overflow: hidden; }
 
     body { display: flex; justify-content: center; align-items: center; }
 
-    /* STEALTH LOCK */
+    /* STEALTH ACCESS OVERLAY */
     #stealth-overlay {
-      position: fixed; inset: 0; background: #02050a; z-index: 9999;
+      position: fixed; inset: 0; background: #111b21; z-index: 9999;
       display: flex; justify-content: center; align-items: center;
     }
 
     .lock-card {
-      width: 88%; max-width: 360px; padding: 25px 20px;
-      border: 2px solid var(--neon-cyan); border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); text-align: center; background: #050c18;
-      display: flex; flex-direction: column; gap: 15px;
+      width: 90%; max-width: 350px; padding: 25px;
+      border: 1px solid #2a3942; border-radius: 12px;
+      text-align: center; background: #202c33;
+      display: flex; flex-direction: column; gap: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
 
-    .lock-card h2 { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; color: var(--neon-cyan); }
+    .lock-card h3 { color: var(--wa-green); font-size: 1.3rem; }
     .lock-card select, .lock-card input {
-      width: 100%; background: #06101e; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
-      padding: 10px; text-align: center; border-radius: 6px; font-family: 'Orbitron', sans-serif; outline: none;
+      width: 100%; background: #111b21; border: 1px solid #2a3942; color: #fff;
+      padding: 12px; border-radius: 8px; font-size: 1rem; outline: none;
     }
     .lock-card button {
-      background: var(--neon-cyan); border: none; color: #000; padding: 12px;
-      font-weight: 800; font-family: 'Orbitron', sans-serif; border-radius: 6px; cursor: pointer;
+      background: var(--wa-green); border: none; color: #111b21; padding: 12px;
+      font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 1rem;
     }
 
-    /* CHAT APP MOBILE MAIN WRAPPER */
+    /* MAIN CONTAINER */
     #chat-app {
-      width: 100%; max-width: 480px; height: 100dvh; background: var(--card-bg);
-      display: flex; flex-direction: column; border: 1px solid rgba(0, 243, 255, 0.2);
+      width: 100%; max-width: 500px; height: 100dvh; background: var(--wa-bg);
+      display: flex; flex-direction: column; border-left: 1px solid #222d34; border-right: 1px solid #222d34;
     }
-    
+
+    /* HEADER */
     header {
-      padding: 12px 16px; background: #030812; border-bottom: 1px solid var(--neon-cyan);
+      padding: 10px 16px; background: var(--wa-header);
       display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 10;
     }
 
-    .header-title { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: var(--neon-pink); }
-    .user-badge { font-size: 0.75rem; color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 2px 8px; border-radius: 10px; }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: #6b7c85; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.2rem; }
+    .user-details h4 { font-size: 1rem; color: var(--wa-text); font-weight: 600; }
+    .user-details span { font-size: 0.75rem; color: var(--wa-green); }
 
+    .header-actions { display: flex; gap: 18px; color: var(--wa-subtext); font-size: 1.1rem; align-items: center; }
+    .header-actions i { cursor: pointer; transition: color 0.2s; }
+    .header-actions i:hover { color: var(--wa-text); }
+    .header-actions i.active-notif { color: var(--wa-green); }
+
+    /* MESSAGE FEED */
     #message-feed {
-      flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+      flex: 1; padding: 12px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+      background-image: radial-gradient(#1f2c34 1px, transparent 0); background-size: 16px 16px; background-color: #0b141a;
     }
-    
-    .msg { max-width: 78%; padding: 8px 12px; border-radius: 10px; font-size: 1rem; word-break: break-word; }
-    .msg.me { align-self: flex-end; background: rgba(0, 119, 255, 0.3); border: 1px solid var(--neon-blue); border-bottom-right-radius: 2px; }
-    .msg.partner { align-self: flex-start; background: rgba(255, 0, 127, 0.3); border: 1px solid var(--neon-pink); border-bottom-left-radius: 2px; }
 
-    .msg-meta { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 0.65rem; opacity: 0.7; margin-top: 3px; }
+    .date-divider { align-self: center; background: #182229; color: var(--wa-subtext); padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; margin: 8px 0; }
 
-    /* FOOTER FIX FOR MOBILE SCREEN */
+    /* MESSAGES */
+    .msg { max-width: 80%; padding: 8px 10px; border-radius: 8px; font-size: 0.95rem; word-break: break-word; position: relative; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); }
+    .msg.me { align-self: flex-end; background: var(--wa-my-msg); border-top-right-radius: 0; }
+    .msg.partner { align-self: flex-start; background: var(--wa-other-msg); border-top-left-radius: 0; }
+
+    .msg img { max-width: 100%; border-radius: 6px; margin-top: 4px; display: block; }
+    .msg audio { width: 100%; height: 36px; margin-top: 4px; }
+
+    .msg-meta { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 0.65rem; color: var(--wa-subtext); margin-top: 2px; float: right; margin-left: 10px; }
+    .msg.me .msg-meta { color: rgba(255,255,255,0.6); }
+    .ticks { color: var(--wa-blue); font-size: 0.75rem; }
+
+    .delete-btn { font-size: 0.7rem; color: #f87171; margin-left: 6px; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+    .msg:hover .delete-btn { opacity: 1; }
+
+    /* CALL LOG BADGES */
+    .call-log { align-self: center; background: #182229; border: 1px solid #2a3942; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; color: var(--wa-subtext); display: flex; align-items: center; gap: 8px; }
+    .call-log i { color: #f87171; }
+
+    /* FOOTER / INPUT */
     footer {
-      padding: 10px; background: #030812; border-top: 1px solid rgba(0, 243, 255, 0.2);
-      display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+      padding: 8px 10px; background: var(--wa-header);
+      display: flex; gap: 8px; align-items: center; flex-shrink: 0; z-index: 10;
     }
-    footer input[type="text"] {
-      flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--neon-cyan);
-      border-radius: 20px; padding: 10px 14px; color: #fff; outline: none; font-size: 0.95rem;
+
+    .input-wrapper { flex: 1; background: #2a3942; border-radius: 8px; display: flex; align-items: center; padding: 0 10px; }
+    .input-wrapper input {
+      width: 100%; background: transparent; border: none; padding: 10px;
+      color: var(--wa-text); outline: none; font-size: 0.95rem;
     }
+
+    .icon-btn { color: var(--wa-subtext); font-size: 1.2rem; cursor: pointer; padding: 6px; }
+    .icon-btn:hover { color: var(--wa-text); }
+    
     #send-btn {
-      background: var(--neon-pink); border: none; color: white; padding: 10px 16px;
-      border-radius: 20px; font-weight: 700; font-family: 'Orbitron', sans-serif; cursor: pointer;
+      background: var(--wa-green); border: none; color: #111b21;
+      width: 42px; height: 42px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; flex-shrink: 0;
     }
+
+    /* EMOJI PICKER OVERLAY */
+    #emoji-box {
+      display: none; position: absolute; bottom: 65px; left: 10px; background: #202c33;
+      border: 1px solid #2a3942; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 100;
+    }
+    #emoji-box span { font-size: 1.4rem; cursor: pointer; padding: 4px; display: inline-block; }
   </style>
 </head>
 <body>
 
-  <!-- Lock Overlay -->
+  <!-- STEALTH LOCK -->
   <div id="stealth-overlay">
     <div class="lock-card">
-      <h2>SYSTEM ACCESS</h2>
+      <h3>WhatsApp Web Access</h3>
       <select id="user-role">
-        <option value="partner1">Boyfriend (User 1)</option>
-        <option value="partner2">Girlfriend (User 2)</option>
+        <option value="user1">User 1</option>
+        <option value="user2">User 2</option>
       </select>
-      <input type="password" id="passcode-input" placeholder="ENTER ACCESS CODE" maxlength="10" />
-      <button id="unlock-btn">ACCESS CHAT</button>
+      <input type="password" id="passcode-input" placeholder="Enter Passcode" maxlength="10" />
+      <button id="unlock-btn">ENTER CHAT</button>
     </div>
   </div>
 
-  <!-- Chat Screen -->
+  <!-- CHAT WINDOW -->
   <div id="chat-app">
     <header>
-      <div class="header-title">OUR SPACE 💖</div>
-      <div class="user-badge" id="current-user-tag">Identity</div>
+      <div class="user-info">
+        <div class="avatar"><i class="fa-solid fa-user"></i></div>
+        <div class="user-details">
+          <h4 id="active-user-name">User Chat</h4>
+          <span>online</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <i class="fa-solid fa-video" title="Video Call" onclick="addCallLog('Video call')"></i>
+        <i class="fa-solid fa-phone" title="Voice Call" onclick="addCallLog('Voice call')"></i>
+        <i class="fa-solid fa-bell active-notif" id="notif-toggle" title="Toggle Notifications" onclick="toggleNotifications()"></i>
+      </div>
     </header>
 
     <div id="message-feed"></div>
 
+    <!-- QUICK EMOJI PANEL -->
+    <div id="emoji-box">
+      <span onclick="insertEmoji('😂')">😂</span>
+      <span onclick="insertEmoji('❤️')">❤️</span>
+      <span onclick="insertEmoji('👍')">👍</span>
+      <span onclick="insertEmoji('🥺')">🥺</span>
+      <span onclick="insertEmoji('🔥')">🔥</span>
+      <span onclick="insertEmoji('😘')">😘</span>
+      <span onclick="insertEmoji('🙏')">🙏</span>
+    </div>
+
     <footer>
-      <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" />
-      <button id="send-btn">SEND</button>
+      <i class="fa-regular fa-face-smile icon-btn" onclick="toggleEmojiBox()"></i>
+      <label class="icon-btn" style="margin:0">
+        <i class="fa-solid fa-paperclip"></i>
+        <input type="file" id="file-input" style="display:none" onchange="sendFile(this)" />
+      </label>
+      <div class="input-wrapper">
+        <input type="text" id="message-input" placeholder="Type a message" autocomplete="off" />
+      </div>
+      <button id="send-btn" onclick="send()"><i class="fa-solid fa-paper-plane"></i></button>
     </footer>
   </div>
 
@@ -120,59 +193,98 @@
 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let myIdentity = "partner1";
+    let myIdentity = "user1";
+    let notifEnabled = true;
 
     const overlay = document.getElementById('stealth-overlay');
     const passInput = document.getElementById('passcode-input');
     const roleSelect = document.getElementById('user-role');
-    const unlockBtn = document.getElementById('unlock-btn');
     const feed = document.getElementById('message-feed');
     const input = document.getElementById('message-input');
-    const userTag = document.getElementById('current-user-tag');
+    const activeUserName = document.getElementById('active-user-name');
+    const notifBtn = document.getElementById('notif-toggle');
 
     function unlock() {
       if (btoa(passInput.value) === HASH_PIN) {
         myIdentity = roleSelect.value;
-        userTag.textContent = myIdentity === "partner1" ? "Boyfriend" : "Girlfriend";
+        activeUserName.textContent = myIdentity === "user1" ? "User 2" : "User 1";
         overlay.style.display = 'none';
         passInput.value = '';
         loadMessages();
-        if ('Notification' in window) Notification.requestPermission();
+        if ('Notification' in window && Notification.permission !== 'granted') {
+          Notification.requestPermission();
+        }
       } else {
-        alert('ACCESS DENIED!');
+        alert('Invalid Passcode!');
       }
     }
 
-    unlockBtn.addEventListener('click', unlock);
+    document.getElementById('unlock-btn').addEventListener('click', unlock);
     passInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) overlay.style.display = 'flex';
     });
 
+    function toggleNotifications() {
+      notifEnabled = !notifEnabled;
+      if (notifEnabled) {
+        notifBtn.classList.add('active-notif');
+        notifBtn.className = "fa-solid fa-bell active-notif";
+      } else {
+        notifBtn.className = "fa-solid fa-bell-slash";
+      }
+    }
+
+    function toggleEmojiBox() {
+      const box = document.getElementById('emoji-box');
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function insertEmoji(emoji) {
+      input.value += emoji;
+      document.getElementById('emoji-box').style.display = 'none';
+      input.focus();
+    }
+
     function renderMsg(msg) {
-      // Purana garbage encrypted format hide karne ke liye
       if (!msg.content || (typeof msg.content === 'string' && msg.content.includes('"iv"'))) return;
 
+      const isMe = msg.sender === myIdentity;
+
+      // Handle Call Logs
+      if (msg.type === 'call_log') {
+        const callDiv = document.createElement('div');
+        callDiv.id = `msg-${msg.id}`;
+        callDiv.className = 'call-log';
+        callDiv.innerHTML = `<i class="fa-solid fa-phone-slash"></i> ${msg.content} - ${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        feed.appendChild(callDiv);
+        feed.scrollTop = feed.scrollHeight;
+        return;
+      }
+
       const div = document.createElement('div');
-      const isMe = msg.sender === myIdentity; 
+      div.id = `msg-${msg.id}`;
       div.className = `msg ${isMe ? 'me' : 'partner'}`;
       const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+      let bodyHtml = msg.content || '';
+      if (msg.file_url) {
+        if (msg.file_url.match(/\.(mp3|wav|ogg)$/i)) {
+          bodyHtml += `<br><audio controls src="${msg.file_url}"></audio>`;
+        } else {
+          bodyHtml += `<br><img src="${msg.file_url}" alt="Attachment" />`;
+        }
+      }
+
       div.innerHTML = `
-        <div>${msg.content}</div>
+        <div>${bodyHtml}</div>
         <div class="msg-meta">
           <span>${time}</span>
+          ${isMe ? `<span class="ticks"><i class="fa-solid fa-check-double"></i></span>` : ''}
+          <i class="fa-solid fa-trash delete-btn" title="Delete for Everyone" onclick="deleteMessage('${msg.id}')"></i>
         </div>
       `;
-
-      div.addEventListener('contextmenu', async (e) => {
-        e.preventDefault();
-        if (confirm("Delete message?")) {
-          await db.from('messages').delete().eq('id', msg.id);
-          div.remove();
-        }
-      });
 
       feed.appendChild(div);
       feed.scrollTop = feed.scrollHeight;
@@ -188,25 +300,63 @@
       const txt = input.value.trim();
       if (!txt) return;
       input.value = '';
+      document.getElementById('emoji-box').style.display = 'none';
       await db.from('messages').insert([{ content: txt, sender: myIdentity }]);
     }
 
-    document.getElementById('send-btn').addEventListener('click', send);
+    async function addCallLog(callType) {
+      await db.from('messages').insert([{ content: `${callType} missed`, sender: myIdentity, type: 'call_log' }]);
+    }
+
+    async function deleteMessage(id) {
+      if (confirm("Delete this message for everyone?")) {
+        const { error } = await db.from('messages').delete().eq('id', id);
+        if (error) {
+          console.error("Delete failed:", error);
+        } else {
+          // Local removal fallback
+          const el = document.getElementById(`msg-${id}`);
+          if (el) el.remove();
+        }
+      }
+    }
+
+    async function sendFile(fileElem) {
+      const file = fileElem.files[0];
+      if (!file) return;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      
+      const { data, error } = await db.storage.from('chat-media').upload(fileName, file);
+      if (!error) {
+        const { data: publicUrlData } = db.storage.from('chat-media').getPublicUrl(fileName);
+        await db.from('messages').insert([{ content: '📷 Attachment', file_url: publicUrlData.publicUrl, sender: myIdentity }]);
+      } else {
+        alert('Supabase Storage bucket "chat-media" (Public) required.');
+      }
+    }
+
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
 
-    // Realtime Listener
+    // REALTIME DATABASE SYNCHRONIZATION
     db.channel('messages_channel')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         renderMsg(payload.new);
 
-        if (document.hidden && payload.new.sender !== myIdentity) {
+        if (notifEnabled && document.hidden && payload.new.sender !== myIdentity) {
           if (Notification.permission === 'granted') {
-            new Notification('sync alert', {
-              body: 'System sync pending...',
-              icon: 'https://cdn-icons-png.flaticon.com/512/561/561127.png'
+            new Notification('New Message', {
+              body: payload.new.content || 'Attachment received',
+              icon: 'https://cdn-icons-png.flaticon.com/512/733/733585.png'
             });
           }
         }
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, (payload) => {
+        // INSTANT REALTIME DELETE FROM SCREEN
+        const deletedId = payload.old.id;
+        const el = document.getElementById(`msg-${deletedId}`);
+        if (el) el.remove();
       })
       .subscribe();
   </script>
