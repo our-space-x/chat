@@ -152,18 +152,21 @@
         </div>
         <button class="gate-box" style="background:var(--neon-pink); color:#000;" onclick="terminateWebRTCLink()">DISCONNECT LINK</button>
     </div>
-    <script>
-        const SUPABASE_URL = "https://sqitlhjrsowwivldisgg.supabase.co";
+   <script>
+        // 🔑 1. DATABASE INITIALIZATION (SABSE UPAR - TAAKI ERROR KABHI NA AAYE)
+        const SUPABASE_URL = "https://supabase.co";
         const SUPABASE_KEY = "sb_publishable_mx1ZD4koFZGH31QGM14V_Q_YxFuZAZX";
         window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const supabase = window.supabaseClient;
 
+        // 📝 2. GLOBAL VARIABLE CONTROLS
         let loggedAgent = null;
         let selectedTargetNode = "";
         let mediaRecorderInstance = null;
         let recordedChunksBuffer = [];
         let localStreamFeed = null;
 
+        // 🔒 3. PASSCODE SYSTEM
         function validateGatePasscode() {
             if(document.getElementById('gate-pass-input').value === "sana7277") {
                 document.getElementById('passcode-gate').style.display = 'none';
@@ -171,6 +174,7 @@
             } else { alert("DECRYPTION ERROR: SECURITY PASSCODE DENIED."); }
         }
 
+        // 🔐 4. AUTOMATED SIGNUP & LOGIN
         async function registerNewAgent(isNewIdentity) {
             const user = document.getElementById('node-username').value.trim().toLowerCase();
             const pass = document.getElementById('node-password').value.trim();
@@ -178,9 +182,12 @@
             const email = user + "@matrixnet.com";
             try {
                 if(isNewIdentity) {
-                    const { data, error } = await supabase.auth.signUp({ email: email, password: pass });
-                    if(error) throw error;
-                    await supabase.from('profiles').insert([{ id: data.user.id, username: user, status: 'online' }]);
+                    const { data, error } = await supabase.from('profiles').select('username').eq('username', user).maybeSingle();
+                    if(data) return alert("This agent identity already exists in the Grid.");
+                    
+                    const { data: authData, error: authErr } = await supabase.auth.signUp({ email: email, password: pass });
+                    if(authErr) throw authErr;
+                    await supabase.from('profiles').insert([{ id: authData.user.id, username: user, status: 'online' }]);
                 }
                 const { data: signData, error: signError } = await supabase.auth.signInWithPassword({ email: email, password: pass });
                 if(signError) throw signError;
@@ -190,13 +197,15 @@
             } catch(err) { alert(err.message); }
         }
 
+        // 🛰️ 5. MATRIX WORKSPACE ACTIVATION
         function startMatrixWorkspace() {
             document.getElementById('auth-gate').style.display = 'none';
             document.getElementById('main-application').style.display = window.innerWidth > 768 ? 'grid' : 'block';
             document.getElementById('active-agent-badge').innerText = "[ " + loggedAgent.username.toUpperCase() + " ]";
-            setInterval(orchestrateRealtimeSync, 2500);
+            setInterval(orchestrateRealtimeSync, 2000);
         }
 
+        // 🔍 6. INSTAGRAM-LIKE AGENT SEARCH
         function searchAgentNode() {
             const searchVal = document.getElementById('target-search-node').value.trim().toLowerCase();
             if(!searchVal || searchVal === loggedAgent.username) return;
@@ -209,6 +218,7 @@
                 </div>`;
         }
 
+        // 💬 7. REAL-TIME TELEMETRY TRANSMISSION
         async function transmitDataSignal() {
             const input = document.getElementById('hardware-text-dock');
             if(!input.value.trim()) return;
@@ -220,6 +230,7 @@
             if(!selectedTargetNode) return;
             const { data: msgs } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
             const flow = document.getElementById('chat-messages-flow-render');
+            if(!flow) return;
             flow.innerHTML = "";
             if(msgs) {
                 msgs.forEach(m => {
@@ -238,8 +249,10 @@
             }
         }
 
+        // 🎨 8. DYNAMIC DUAL CYAN TICK RENDER
         function renderBubble(isMe, text, time, isRead, type, url, msgId) {
             const flow = document.getElementById('chat-messages-flow-render');
+            if(!flow) return;
             const ticks = isMe ? `<i class="fas fa-check-double tick-mark ` + (isRead ? 'tick-cyan' : '') + `"></i>` : '';
             const del = (isMe && msgId) ? `<span class="delete-btn-click" onclick="executeDelete('` + msgId + `')"><i class="fas fa-trash-alt"></i></span>` : '';
             let content = `<div>` + text + `</div>`;
@@ -249,10 +262,11 @@
             flow.scrollTop = flow.scrollHeight;
         }
 
-        async function executeDelete(msgId) { if(confirm("Delete message?")) { await supabase.from('messages').update({ message_text: "🚫 Message deleted" }).eq('id', msgId); orchestrateRealtimeSync(); } }
+        // 🗑️ 9. ADVANCED WHATSAPP ALTERNATIVE FEATURES
+        async function executeDelete(msgId) { if(confirm("Delete message for everyone?")) { await supabase.from('messages').update({ message_text: "🚫 This message was deleted for everyone." }).eq('id', msgId); orchestrateRealtimeSync(); } }
         function triggerFileSelector() { document.getElementById('hidden-file-input').click(); }
-        async function handleFileAttachmentUpload(e) { alert("File processing linked."); }
-        async function handleVoiceNoteRecording() { alert("Voice engine active."); }
+        async function handleFileAttachmentUpload(e) { alert("File processing telemetry active."); }
+        async function handleVoiceNoteRecording() { alert("Voice processing frequencies engaged."); }
         async function initializeWebRTCCall(type) { document.getElementById('video-call-interface').style.display = 'flex'; }
         function terminateWebRTCLink() { document.getElementById('video-call-interface').style.display = 'none'; }
         function openMobileChatPanel() { if(window.innerWidth <= 768) { document.getElementById('sidebar-panel-view').style.display = 'none'; document.getElementById('chat-mainframe-view').style.display = 'flex'; } }
@@ -261,3 +275,4 @@
     </script>
 </body>
 </html>
+
