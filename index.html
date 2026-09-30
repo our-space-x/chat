@@ -46,8 +46,7 @@
     }
 
     .header-title { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--neon-pink); }
-    .call-controls { display: flex; gap: 12px; }
-    .call-btn { background: none; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 0.8rem; }
+    .status-online { font-size: 0.75rem; color: #00ffaa; text-shadow: 0 0 5px #00ffaa; }
 
     #message-feed { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
     
@@ -65,8 +64,8 @@
     .icon-btn { background: none; border: none; color: var(--neon-cyan); font-size: 1.2rem; cursor: pointer; padding: 0 4px; }
     #send-btn { background: var(--neon-pink); border: none; color: white; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-family: 'Orbitron', sans-serif; cursor: pointer; }
 
-    /* Emoji Dropdown Box */
-    #emoji-box { display: none; position: absolute; bottom: 60px; left: 10px; background: #06101e; border: 1px solid var(--neon-cyan); padding: 8px; border-radius: 8px; max-width: 200px; }
+    /* Emoji Box */
+    #emoji-box { display: none; position: absolute; bottom: 60px; left: 10px; background: #06101e; border: 1px solid var(--neon-cyan); padding: 8px; border-radius: 8px; }
     #emoji-box span { cursor: pointer; font-size: 1.3rem; padding: 4px; }
   </style>
 </head>
@@ -86,11 +85,7 @@
     <header>
       <div>
         <div class="header-title">OUR SPACE 💖</div>
-        <div style="font-size: 0.75rem; color: #00ffaa;">● Live Sync Active</div>
-      </div>
-      <div class="call-controls">
-        <button class="call-btn" onclick="startCall('voice')">📞 Voice</button>
-        <button class="call-btn" onclick="startCall('video')">📹 Video</button>
+        <div class="status-online">● Online Sync Active</div>
       </div>
     </header>
 
@@ -103,7 +98,6 @@
       <span onclick="addEmoji('😘')">😘</span>
       <span onclick="addEmoji('🥺')">🥺</span>
       <span onclick="addEmoji('😂')">😂</span>
-      <span onclick="addEmoji('🔥')">🔥</span>
     </div>
 
     <footer>
@@ -117,6 +111,7 @@
   </div>
 
   <script>
+    // CORRECT SUPABASE CREDENTIALS
     const SUPABASE_URL = "https://qkushswsqifrajdiuynl.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_BaddnFvHZ9YBu4FxGJIbPg_KP4JN-l4";
     const HASH_PIN = "c2FuYTcyNzc="; // sana7277
@@ -158,22 +153,16 @@
       document.getElementById('emoji-box').style.display = 'none';
     }
 
-    function cleanContent(rawText) {
-      if (!rawText) return '';
-      // Raw string clean handler to bypass old encrypted garbage
-      if (rawText.startsWith('{"iv"')) {
-        return "<i>[Encrypted Old Message]</i>";
-      }
-      return rawText;
-    }
-
     function renderMsg(msg) {
+      // Purana gibberish hide karne ke liye
+      if (typeof msg.content === 'string' && msg.content.startsWith('{"iv"')) return;
+
       const div = document.createElement('div');
       const isMe = msg.sender === 'user1'; 
       div.className = `msg ${isMe ? 'me' : 'partner'}`;
       const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       
-      let bodyHtml = cleanContent(msg.content);
+      let bodyHtml = msg.content || '';
       if (msg.file_url) {
         bodyHtml += `<br><img src="${msg.file_url}" alt="Attachment" />`;
       }
@@ -200,7 +189,7 @@
 
     async function loadMessages() {
       feed.innerHTML = '';
-      const { data } = await db.from('messages').select('*').order('created_at', { ascending: true });
+      const { data, error } = await db.from('messages').select('*').order('created_at', { ascending: true });
       if (data) data.forEach(renderMsg);
     }
 
@@ -220,14 +209,10 @@
       const { data, error } = await db.storage.from('chat-media').upload(fileName, file);
       if (!error) {
         const { data: publicUrlData } = db.storage.from('chat-media').getPublicUrl(fileName);
-        await db.from('messages').insert([{ content: '📷 Photo Sent', file_url: publicUrlData.publicUrl, sender: 'user1' }]);
+        await db.from('messages').insert([{ content: '📷 Photo', file_url: publicUrlData.publicUrl, sender: 'user1' }]);
       } else {
-        alert('Storage bucket setup required in Supabase for files.');
+        alert('Supabase me Storage Bucket "chat-media" (Public) create hona chahiye.');
       }
-    }
-
-    function startCall(type) {
-      alert(`Starting ${type} call... Connection initialized.`);
     }
 
     document.getElementById('send-btn').addEventListener('click', send);
