@@ -2,71 +2,85 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>System Diagnostics</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Rajdhani:wght@600;700&display=swap');
 
     :root {
       --bg-dark: #030712;
-      --card-bg: rgba(10, 15, 30, 0.95);
+      --card-bg: rgba(10, 15, 30, 0.98);
       --neon-cyan: #00f3ff;
       --neon-pink: #ff007f;
       --neon-blue: #0077ff;
-      --text-color: #e0f7fc;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-color); height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    html, body { height: 100%; background-color: var(--bg-dark); color: #e0f7fc; overflow: hidden; }
 
-    /* Stealth Lock Screen */
+    body { display: flex; justify-content: center; align-items: center; }
+
+    /* STEALTH LOCK */
     #stealth-overlay {
       position: fixed; inset: 0; background: #02050a; z-index: 9999;
       display: flex; justify-content: center; align-items: center;
     }
 
     .lock-card {
-      width: 90%; max-width: 380px; padding: 30px 20px;
+      width: 88%; max-width: 360px; padding: 25px 20px;
       border: 2px solid var(--neon-cyan); border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); text-align: center; background: rgba(5, 12, 24, 0.9);
-      display: flex; flex-direction: column; gap: 20px;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); text-align: center; background: #050c18;
+      display: flex; flex-direction: column; gap: 15px;
     }
 
-    .lock-card h2 { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--neon-cyan); }
-    .lock-card input { width: 100%; background: #06101e; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 12px; text-align: center; border-radius: 6px; font-family: 'Orbitron', sans-serif; outline: none; }
-    .lock-card button { background: var(--neon-cyan); border: none; color: #000; padding: 12px; font-weight: 900; font-family: 'Orbitron', sans-serif; border-radius: 6px; cursor: pointer; }
+    .lock-card h2 { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; color: var(--neon-cyan); }
+    .lock-card select, .lock-card input {
+      width: 100%; background: #06101e; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+      padding: 10px; text-align: center; border-radius: 6px; font-family: 'Orbitron', sans-serif; outline: none;
+    }
+    .lock-card button {
+      background: var(--neon-cyan); border: none; color: #000; padding: 12px;
+      font-weight: 800; font-family: 'Orbitron', sans-serif; border-radius: 6px; cursor: pointer;
+    }
 
-    /* Main App Window */
-    #chat-app { width: 100%; max-width: 480px; height: 100vh; background: var(--card-bg); border: 1px solid rgba(0, 243, 255, 0.3); display: flex; flex-direction: column; }
+    /* CHAT APP MOBILE MAIN WRAPPER */
+    #chat-app {
+      width: 100%; max-width: 480px; height: 100dvh; background: var(--card-bg);
+      display: flex; flex-direction: column; border: 1px solid rgba(0, 243, 255, 0.2);
+    }
     
     header {
-      padding: 12px 16px; background: rgba(3, 8, 18, 0.95);
-      border-bottom: 1px solid var(--neon-cyan); display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; background: #030812; border-bottom: 1px solid var(--neon-cyan);
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
     }
 
-    .header-title { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--neon-pink); }
-    .status-online { font-size: 0.75rem; color: #00ffaa; text-shadow: 0 0 5px #00ffaa; }
+    .header-title { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: var(--neon-pink); }
+    .user-badge { font-size: 0.75rem; color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 2px 8px; border-radius: 10px; }
 
-    #message-feed { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    #message-feed {
+      flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+    }
     
-    .msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 0.95rem; word-break: break-word; }
-    .msg.me { align-self: flex-end; background: rgba(0, 119, 255, 0.25); border: 1px solid var(--neon-blue); }
-    .msg.partner { align-self: flex-start; background: rgba(255, 0, 127, 0.25); border: 1px solid var(--neon-pink); }
-    .msg img { max-width: 100%; border-radius: 8px; margin-top: 5px; }
+    .msg { max-width: 78%; padding: 8px 12px; border-radius: 10px; font-size: 1rem; word-break: break-word; }
+    .msg.me { align-self: flex-end; background: rgba(0, 119, 255, 0.3); border: 1px solid var(--neon-blue); border-bottom-right-radius: 2px; }
+    .msg.partner { align-self: flex-start; background: rgba(255, 0, 127, 0.3); border: 1px solid var(--neon-pink); border-bottom-left-radius: 2px; }
 
-    .msg-meta { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 0.65rem; opacity: 0.7; margin-top: 4px; }
-    .ticks { color: var(--neon-cyan); font-weight: bold; }
+    .msg-meta { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 0.65rem; opacity: 0.7; margin-top: 3px; }
 
-    /* Input Footer */
-    footer { padding: 10px; background: rgba(3, 8, 18, 0.95); border-top: 1px solid rgba(0, 243, 255, 0.3); display: flex; gap: 6px; align-items: center; }
-    footer input[type="text"] { flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--neon-cyan); border-radius: 20px; padding: 10px 14px; color: #fff; outline: none; }
-    .icon-btn { background: none; border: none; color: var(--neon-cyan); font-size: 1.2rem; cursor: pointer; padding: 0 4px; }
-    #send-btn { background: var(--neon-pink); border: none; color: white; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-family: 'Orbitron', sans-serif; cursor: pointer; }
-
-    /* Emoji Box */
-    #emoji-box { display: none; position: absolute; bottom: 60px; left: 10px; background: #06101e; border: 1px solid var(--neon-cyan); padding: 8px; border-radius: 8px; }
-    #emoji-box span { cursor: pointer; font-size: 1.3rem; padding: 4px; }
+    /* FOOTER FIX FOR MOBILE SCREEN */
+    footer {
+      padding: 10px; background: #030812; border-top: 1px solid rgba(0, 243, 255, 0.2);
+      display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+    }
+    footer input[type="text"] {
+      flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--neon-cyan);
+      border-radius: 20px; padding: 10px 14px; color: #fff; outline: none; font-size: 0.95rem;
+    }
+    #send-btn {
+      background: var(--neon-pink); border: none; color: white; padding: 10px 16px;
+      border-radius: 20px; font-weight: 700; font-family: 'Orbitron', sans-serif; cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -74,7 +88,11 @@
   <!-- Lock Overlay -->
   <div id="stealth-overlay">
     <div class="lock-card">
-      <h2>SYSTEM LOCKED</h2>
+      <h2>SYSTEM ACCESS</h2>
+      <select id="user-role">
+        <option value="partner1">Boyfriend (User 1)</option>
+        <option value="partner2">Girlfriend (User 2)</option>
+      </select>
       <input type="password" id="passcode-input" placeholder="ENTER ACCESS CODE" maxlength="10" />
       <button id="unlock-btn">ACCESS CHAT</button>
     </div>
@@ -83,49 +101,39 @@
   <!-- Chat Screen -->
   <div id="chat-app">
     <header>
-      <div>
-        <div class="header-title">OUR SPACE 💖</div>
-        <div class="status-online">● Online Sync Active</div>
-      </div>
+      <div class="header-title">OUR SPACE 💖</div>
+      <div class="user-badge" id="current-user-tag">Identity</div>
     </header>
 
     <div id="message-feed"></div>
 
-    <!-- Quick Emoji Box -->
-    <div id="emoji-box">
-      <span onclick="addEmoji('💖')">💖</span>
-      <span onclick="addEmoji('❤️')">❤️</span>
-      <span onclick="addEmoji('😘')">😘</span>
-      <span onclick="addEmoji('🥺')">🥺</span>
-      <span onclick="addEmoji('😂')">😂</span>
-    </div>
-
     <footer>
-      <button class="icon-btn" onclick="toggleEmoji()">😊</button>
-      <label class="icon-btn" style="cursor:pointer">
-        📎 <input type="file" id="file-input" style="display:none" onchange="sendFile(this)" />
-      </label>
-      <input type="text" id="message-input" placeholder="Type a message..." />
+      <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" />
       <button id="send-btn">SEND</button>
     </footer>
   </div>
 
   <script>
-    // CORRECT SUPABASE CREDENTIALS
     const SUPABASE_URL = "https://qkushswsqifrajdiuynl.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_BaddnFvHZ9YBu4FxGJIbPg_KP4JN-l4";
     const HASH_PIN = "c2FuYTcyNzc="; // sana7277
 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    let myIdentity = "partner1";
+
     const overlay = document.getElementById('stealth-overlay');
     const passInput = document.getElementById('passcode-input');
+    const roleSelect = document.getElementById('user-role');
     const unlockBtn = document.getElementById('unlock-btn');
     const feed = document.getElementById('message-feed');
     const input = document.getElementById('message-input');
+    const userTag = document.getElementById('current-user-tag');
 
     function unlock() {
       if (btoa(passInput.value) === HASH_PIN) {
+        myIdentity = roleSelect.value;
+        userTag.textContent = myIdentity === "partner1" ? "Boyfriend" : "Girlfriend";
         overlay.style.display = 'none';
         passInput.value = '';
         loadMessages();
@@ -138,40 +146,23 @@
     unlockBtn.addEventListener('click', unlock);
     passInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
 
-    // Auto Lock on Tab/Recent Change
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) overlay.style.display = 'flex';
     });
 
-    function toggleEmoji() {
-      const box = document.getElementById('emoji-box');
-      box.style.display = box.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function addEmoji(emoji) {
-      input.value += emoji;
-      document.getElementById('emoji-box').style.display = 'none';
-    }
-
     function renderMsg(msg) {
-      // Purana gibberish hide karne ke liye
-      if (typeof msg.content === 'string' && msg.content.startsWith('{"iv"')) return;
+      // Purana garbage encrypted format hide karne ke liye
+      if (!msg.content || (typeof msg.content === 'string' && msg.content.includes('"iv"'))) return;
 
       const div = document.createElement('div');
-      const isMe = msg.sender === 'user1'; 
+      const isMe = msg.sender === myIdentity; 
       div.className = `msg ${isMe ? 'me' : 'partner'}`;
       const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
-      let bodyHtml = msg.content || '';
-      if (msg.file_url) {
-        bodyHtml += `<br><img src="${msg.file_url}" alt="Attachment" />`;
-      }
 
       div.innerHTML = `
-        <div>${bodyHtml}</div>
+        <div>${msg.content}</div>
         <div class="msg-meta">
           <span>${time}</span>
-          ${isMe ? `<span class="ticks">✓✓</span>` : ''}
         </div>
       `;
 
@@ -189,7 +180,7 @@
 
     async function loadMessages() {
       feed.innerHTML = '';
-      const { data, error } = await db.from('messages').select('*').order('created_at', { ascending: true });
+      const { data } = await db.from('messages').select('*').order('created_at', { ascending: true });
       if (data) data.forEach(renderMsg);
     }
 
@@ -197,34 +188,18 @@
       const txt = input.value.trim();
       if (!txt) return;
       input.value = '';
-      await db.from('messages').insert([{ content: txt, sender: 'user1', status: 'sent' }]);
-    }
-
-    async function sendFile(fileElem) {
-      const file = fileElem.files[0];
-      if (!file) return;
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      
-      const { data, error } = await db.storage.from('chat-media').upload(fileName, file);
-      if (!error) {
-        const { data: publicUrlData } = db.storage.from('chat-media').getPublicUrl(fileName);
-        await db.from('messages').insert([{ content: '📷 Photo', file_url: publicUrlData.publicUrl, sender: 'user1' }]);
-      } else {
-        alert('Supabase me Storage Bucket "chat-media" (Public) create hona chahiye.');
-      }
+      await db.from('messages').insert([{ content: txt, sender: myIdentity }]);
     }
 
     document.getElementById('send-btn').addEventListener('click', send);
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
 
-    // Realtime Signal Listener
+    // Realtime Listener
     db.channel('messages_channel')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        const msg = payload.new;
-        renderMsg(msg);
+        renderMsg(payload.new);
 
-        if (document.hidden && msg.sender !== 'user1') {
+        if (document.hidden && payload.new.sender !== myIdentity) {
           if (Notification.permission === 'granted') {
             new Notification('sync alert', {
               body: 'System sync pending...',
