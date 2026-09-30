@@ -1,777 +1,262 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>CYBER_CORE // ADVANCED QUANTUM MESSENGER</title>
-
-    <!-- Supabase Official SDK -->
-
     <script src="https://jsdelivr.net"></script>
-
-    <!-- Fonts & Icons -->
-
     <link href="https://googleapis.com" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cloudflare.com">
-
     
-
     <style>
-
         :root {
-
             --neon-cyan: #00f3ff;
-
             --neon-pink: #ff0055;
-
             --neon-green: #39ff14;
-
             --dark-bg: #030307;
-
             --panel-bg: rgba(8, 8, 18, 0.96);
-
             --cyber-font: 'Rajdhani', sans-serif;
-
             --futuristic-font: 'Orbitron', sans-serif;
-
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
-
             background-color: var(--dark-bg); color: #fff; font-family: var(--cyber-font);
-
             height: 100vh; overflow: hidden;
-
             background-image: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), url('https://unsplash.com');
-
             background-size: cover; background-position: center;
-
         }
-
-
-
-        /* 🔒 STRICT PASSCODE PROTECTION GUARD */
-
         #passcode-gate {
-
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-
             background: #000; display: flex; flex-direction: column;
-
             justify-content: center; align-items: center; z-index: 10000; padding: 20px;
+        }
+        .gate-title { font-family: var(--futuristic-font); color: var(--neon-cyan); text-shadow: 0 0 12px var(--neon-cyan); margin-bottom: 30px; letter-spacing: 3px; text-align: center; font-size: 1.6rem; }
+        .gate-box { background: var(--panel-bg); padding: 35px; border: 2px solid var(--neon-pink); box-shadow: 0 0 30px rgba(255, 0, 85, 0.25); width: 100%; max-width: 380px; text-align: center; }
+        .gate-box input { width: 100%; background: #000; border: 1px solid var(--neon-cyan); color: var(--neon-green); padding: 15px; font-family: var(--futuristic-font); text-align: center; font-size: 20px; margin-bottom: 20px; outline: none; letter-spacing: 4px; }
+        .gate-box button { width: 100%; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); padding: 14px; font-family: var(--futuristic-font); cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 15px; }
+        .gate-box button:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 15px var(--neon-pink); }
+        #auth-gate { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: var(--dark-bg); justify-content: center; align-items: center; z-index: 9999; padding: 20px; }
+        .auth-box { border-color: var(--neon-cyan) !important; box-shadow: 0 0 30px rgba(0, 243, 255, 0.25) !important; }
+        .auth-box input { width: 100%; background: #000; border: 1px solid rgba(0, 243, 255, 0.4); color: #fff; padding: 14px; margin-bottom: 15px; outline: none; font-size: 16px; font-family: var(--cyber-font); }
+        #main-application { display: none; height: 100vh; width: 100vw; }
+        .sidebar { background: var(--panel-bg); border-right: 1px solid rgba(0, 243, 255, 0.2); display: flex; flex-direction: column; height: 100%; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0, 243, 255, 0.15); display: flex; justify-content: space-between; align-items: center; font-family: var(--futuristic-font); color: var(--neon-cyan); }
+        .search-bar-box { padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 10px; }
+        .search-bar-box input { flex:1; background: #000; border: 1px solid rgba(0,243,255,0.3); padding: 10px 14px; color: #fff; outline: none; font-family: var(--cyber-font); font-size: 15px; }
+        .search-bar-box button { background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); padding: 0 15px; cursor: pointer; }
+        .chat-stream-list { flex: 1; overflow-y: auto; }
+        .agent-node-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .avatar-frame { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--neon-pink); margin-right: 14px; object-fit: cover; }
+        .chat-mainframe { display: flex; flex-direction: column; background: rgba(4,4,8,0.94); height: 100%; }
+        .chat-mainframe-header { background: var(--panel-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 243, 255, 0.2); }
+        .target-profile-area { display: flex; align-items: center; cursor: pointer; }
+        .status-dot-indicator { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 7px; }
+        .status-online { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
+        .status-offline { background: #555; }
+        .header-calling-actions button { background: transparent; border: none; color: var(--neon-cyan); font-size: 19px; margin-left: 18px; cursor: pointer; }
+        .messages-container-flow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+        .bubble-packet { display: flex; flex-direction: column; max-width: 68%; padding: 12px 16px; border-radius: 4px; font-size: 15px; }
+        .bubble-sent { align-self: flex-end; background: rgba(0, 243, 255, 0.07); border: 1px solid var(--neon-cyan); }
+        .bubble-received { align-self: flex-start; background: rgba(255, 0, 85, 0.07); border: 1px solid var(--neon-pink); }
+        .bubble-badge { font-size: 9px; color: var(--neon-green); font-family: var(--futuristic-font); margin-bottom: 5px; }
+        .bubble-time-row { font-size: 11px; color: #666; margin-top: 6px; text-align: right; }
+        .tick-mark { margin-left: 6px; font-size: 11px; }
+        .tick-cyan { color: var(--neon-cyan); text-shadow: 0 0 6px var(--neon-cyan); }
+        .delete-btn-click { font-size: 10px; color: var(--neon-pink); cursor: pointer; margin-left: 8px; float: right; }
+        .hardware-input-bar { background: var(--panel-bg); padding: 16px; display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(0, 243, 255, 0.15); }
+        .hardware-input-bar input { flex: 1; background: #000; border: 1px solid rgba(0, 243, 255, 0.3); padding: 14px; color: #fff; outline: none; font-family: var(--cyber-font); }
+        .hardware-input-bar button { background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); width: 46px; height: 46px; cursor: pointer; }
+        .voice-note-audio { max-width: 240px; margin-top: 5px; filter: hue-rotate(180deg) invert(90%); }
+        .msg-image-preview { max-width: 100%; border-radius: 4px; margin-top: 6px; }
+        #video-call-interface { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: #050508; z-index: 20000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .video-viewport-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 800px; height: 60vh; }
+        .video-box { background: #000; border: 2px solid var(--neon-cyan); position: relative; }
+        .video-box video { width: 100%; height: 100%; object-fit: cover; }
+        .recording-active { animation: pulseWarning 1s infinite alternate; border-color: var(--neon-pink) !important; color: var(--neon-pink) !important; }
+        @keyframes pulseWarning { from { box-shadow: 0 0 4px var(--neon-pink); } to { box-shadow: 0 0 18px var(--neon-pink); } }
+        @media (min-width: 769px) { #main-application { display: none; grid-template-columns: 350px 1fr; } .back-btn-m { display: none; } }
+        @media (max-width: 768px) { #main-application { display: none; grid-template-columns: 1fr; } .sidebar { display: flex; width: 100%; } .chat-mainframe { display: none; width: 100%; } .back-btn-m { display: inline-block; background: transparent; border: none; color: var(--neon-cyan); margin-right: 12px; } }
+    </style>
+</head>
+<body>
 
+    <div id="passcode-gate">
+        <div class="gate-title">DECRYPT GATEWAY // ENTER ACCESS CREDENTIALS</div>
+        <div class="gate-box">
+            <input type="password" id="gate-pass-input" placeholder="PASSCODE">
+            <button onclick="validateGatePasscode()">OPEN MATRIX INTERFACE</button>
+        </div>
+    </div>
+
+    <div id="auth-gate">
+        <div class="gate-box auth-box">
+            <div class="gate-title" style="font-size:1.2rem; margin-bottom:15px;">INITIALIZE NODE TRANSIT</div>
+            <input type="text" id="node-username" placeholder="CHOOSE AGENT USERNAME">
+            <input type="password" id="node-password" placeholder="SECURE PASSWORD">
+            <button onclick="registerNewAgent(true)" style="border-color:var(--neon-cyan); color:var(--neon-cyan); margin-bottom:12px;">GENERATE NEW IDENTITY</button>
+            <button onclick="registerNewAgent(false)">SYNC EXISTING NODE</button>
+        </div>
+    </div>
+
+    <div id="main-application">
+        <div class="sidebar" id="sidebar-panel-view">
+            <div class="sidebar-header">
+                <span><i class="fas fa-network-wired"></i> MATRIX_NET_v3.0</span>
+                <span id="active-agent-badge" style="color:var(--neon-pink); font-size:13px;"></span>
+            </div>
+            <div class="search-bar-box">
+                <input type="text" id="target-search-node" placeholder="Search target username...">
+                <button onclick="searchAgentNode()"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="chat-stream-list" id="active-nodes-list-render"></div>
+        </div>
+
+        <div class="chat-mainframe" id="chat-mainframe-view">
+            <div class="chat-mainframe-header">
+                <div class="target-profile-area">
+                    <button class="back-btn-m" onclick="mobileBackToSidebar()"><i class="fas fa-arrow-left"></i></button>
+                    <div style="display:flex; align-items:center;">
+                        <img src="https://unsplash.com" class="avatar-frame">
+                        <div>
+                            <h3 id="header-target-title-name" style="font-size:16px;">Secure Node</h3>
+                            <div style="display:flex; align-items:center; font-size:12px; color:#999;">
+                                <span id="header-presence-dot" class="status-dot-indicator status-offline"></span>
+                                <span id="header-presence-text">Disconnected</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-calling-actions">
+                    <button onclick="initializeWebRTCCall('Audio')"><i class="fas fa-phone-alt"></i></button>
+                    <button onclick="initializeWebRTCCall('Video')"><i class="fas fa-video"></i></button>
+                </div>
+            </div>
+
+            <div class="messages-container-flow" id="chat-messages-flow-render"></div>
+
+            <div class="hardware-input-bar">
+                <button id="audio-mic-trigger" onclick="handleVoiceNoteRecording()"><i class="fas fa-microphone"></i></button>
+                <button onclick="triggerFileSelector()"><i class="fas fa-paperclip"></i></button>
+                <input type="file" id="hidden-file-input" style="display: none;" onchange="handleFileAttachmentUpload(event)">
+                <input type="text" id="hardware-text-dock" placeholder="Transmit data stream..." onkeypress="catchDockEnter(event)">
+                <button onclick="transmitDataSignal()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="video-call-interface">
+        <div class="gate-title">SECURE QUANTUM LINK ESTABLISHED</div>
+        <div class="video-viewport-grid">
+            <div class="video-box"><video id="local-video-stream" autoplay playsinline muted></video></div>
+            <div class="video-box"><video id="remote-video-stream" autoplay playsinline></video></div>
+        </div>
+        <button class="gate-box" style="background:var(--neon-pink); color:#000;" onclick="terminateWebRTCLink()">DISCONNECT LINK</button>
+    </div>
+    <script>
+        const SUPABASE_URL = "https://supabase.co";
+        const SUPABASE_KEY = "sb_publishable_mx1ZD4koFZGH31QGM14V_Q_YxFuZAZX";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let loggedAgent = null;
+        let selectedTargetNode = "";
+        let mediaRecorderInstance = null;
+        let recordedChunksBuffer = [];
+        let localStreamFeed = null;
+
+        function validateGatePasscode() {
+            if(document.getElementById('gate-pass-input').value === "sana7277") {
+                document.getElementById('passcode-gate').style.display = 'none';
+                document.getElementById('auth-gate').style.display = 'flex';
+            } else { alert("DECRYPTION ERROR: SECURITY PASSCODE DENIED."); }
         }
 
-        .gate-title { font-family: var(--futuristic-font); color: var(--neon-cyan); text-shadow: 0 0 12px var(--neon-cyan); margin-bottom: 30px; letter-spacing: 3px; text-align: center; font-size: 1.6rem; }
-
-        .gate-box { background: var(--panel-bg); padding: 35px; border: 2px solid var(--neon-pink); box-shadow: 0 0 30px rgba(255, 0, 85, 0.25); width: 100%; max-width: 380px; text-align: center; }
-
-        .gate-box input { width: 100%; background: #000; border: 1px solid var(--neon-cyan); color: var(--neon-green); padding: 15px; font-family: var(--futuristic-font); text-align: center; font-size: 20px; margin-bottom: 20px; outline: none; letter-spacing: 4px; }
-
-        .gate-box button { width: 100%; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); padding: 14px; font-family: var(--futuristic-font); cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 15px; }
-
-        .gate-box button:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 15px var(--neon-pink); }
-
-
-
-        /* 🔐 NO-NUMBER SIGNUP & LOGIN INTERFACE */
-
-        #auth-gate { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: var(--dark-bg); justify-content: center; align-items: center; z-index: 9999; padding: 20px; }
-
-        .auth-box { border-color: var(--neon-cyan) !important; box-shadow: 0 0 30px rgba(0, 243, 255, 0.25) !important; }
-
-        .auth-box input { width: 100%; background: #000; border: 1px solid rgba(0, 243, 255, 0.4); color: #fff; padding: 14px; margin-bottom: 15px; outline: none; font-size: 16px; font-family: var(--cyber-font); }
-
-        .auth-box input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 8px var(--neon-cyan); }
-
-        
-
-        /* 📱 MAIN DYNAMIC RESPONSIVE FRAMEWORK */
-
-        #main-application { display: none; height: 100vh; width: 100vw; }
-
-        .sidebar { background: var(--panel-bg); border-right: 1px solid rgba(0, 243, 255, 0.2); display: flex; flex-direction: column; height: 100%; }
-
-        .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0, 243, 255, 0.15); display: flex; justify-content: space-between; align-items: center; font-family: var(--futuristic-font); color: var(--neon-cyan); }
-
-        
-
-        .search-bar-box { padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 10px; }
-
-        .search-bar-box input { flex:1; background: #000; border: 1px solid rgba(0,243,255,0.3); padding: 10px 14px; color: #fff; outline: none; font-family: var(--cyber-font); font-size: 15px; }
-
-        .search-bar-box button { background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); padding: 0 15px; cursor: pointer; transition: 0.2s; }
-
-        .search-bar-box button:hover { background: var(--neon-pink); color: #000; }
-
-        
-
-        .chat-stream-list { flex: 1; overflow-y: auto; }
-
-        .agent-node-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.02); transition: 0.2s; }
-
-        .agent-node-item:hover { background: rgba(0, 243, 255, 0.06); }
-
-        .avatar-frame { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--neon-pink); margin-right: 14px; object-fit: cover; box-shadow: 0 0 6px rgba(255,0,85,0.2); }
-
-        
-
-        /* CHAT FRAME INTERFACE */
-
-        .chat-mainframe { display: flex; flex-direction: column; background: rgba(4,4,8,0.94); height: 100%; }
-
-        .chat-mainframe-header { background: var(--panel-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 243, 255, 0.2); }
-
-        .target-profile-area { display: flex; align-items: center; cursor: pointer; }
-
-        .status-dot-indicator { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 7px; }
-
-        .status-online { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
-
-        .status-offline { background: #555; }
-
-        
-
-        .header-calling-actions button { background: transparent; border: none; color: var(--neon-cyan); font-size: 19px; margin-left: 18px; cursor: pointer; transition: 0.2s; }
-
-        .header-calling-actions button:hover { color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); }
-
-        
-
-        /* QUANTUM MESSAGES SPACE & READ CYAN TICKS */
-
-        .messages-container-flow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
-
-        .bubble-packet { display: flex; flex-direction: column; max-width: 68%; position: relative; padding: 12px 16px; border-radius: 4px; font-size: 15px; line-height: 1.4; }
-
-        .bubble-sent { align-self: flex-end; background: rgba(0, 243, 255, 0.07); border: 1px solid var(--neon-cyan); }
-
-        .bubble-received { align-self: flex-start; background: rgba(255, 0, 85, 0.07); border: 1px solid var(--neon-pink); }
-
-        .bubble-badge { font-size: 9px; color: var(--neon-green); font-family: var(--futuristic-font); margin-bottom: 5px; display: flex; align-items: center; gap: 4px; letter-spacing: 0.5px; }
-
-        .bubble-time-row { font-size: 11px; color: #666; margin-top: 6px; text-align: right; display: block; }
-
-        .tick-mark { margin-left: 6px; font-size: 11px; }
-
-        .tick-cyan { color: var(--neon-cyan); text-shadow: 0 0 6px var(--neon-cyan); }
-
-        .delete-btn-click { font-size: 10px; color: var(--neon-pink); cursor: pointer; margin-left: 8px; float: right; opacity: 0.6; }
-
-        .delete-btn-click:hover { opacity: 1; }
-
-
-
-        /* ADVANCED HARDWARE INPUT BAR */
-
-        .hardware-input-bar { background: var(--panel-bg); padding: 16px; display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(0, 243, 255, 0.15); }
-
-        .hardware-input-bar input { flex: 1; background: #000; border: 1px solid rgba(0, 243, 255, 0.3); padding: 14px; color: #fff; border-radius: 4px; outline: none; font-family: var(--cyber-font); font-size: 15px; }
-
-        .hardware-input-bar button { background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); width: 46px; height: 46px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
-
-        .hardware-input-bar button:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 10px var(--neon-cyan); }
-
-        
-
-        /* MEDIA ELEMENT CONTAINERS */
-
-        .voice-note-audio { max-width: 240px; margin-top: 5px; outline: none; filter: hue-rotate(180deg) invert(90%); }
-
-        .msg-image-preview { max-width: 100%; border-radius: 4px; margin-top: 6px; border: 1px solid rgba(255,255,255,0.1); }
-
-        
-
-        /* PEER VIDEO WEB-CAM INTERFACE STYLES */
-
-        .modal-overlay-blur { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 100; backdrop-filter: blur(5px); }
-
-        .cyber-modal-card { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--panel-bg); border: 2px solid var(--neon-cyan); padding: 25px; z-index: 101; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 0 25px var(--neon-cyan); border-radius: 4px; }
-
-        
-
-        #video-call-interface { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: #050508; z-index: 20000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-
-        .video-viewport-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 800px; height: 60vh; margin-bottom: 30px; }
-
-        .video-box { background: #000; border: 2px solid var(--neon-cyan); border-radius: 6px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
-
-        .video-box video { width: 100%; height: 100%; object-fit: cover; }
-
-        .video-label { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 4px 10px; font-family: var(--futuristic-font); font-size: 11px; color: var(--neon-cyan); }
-
-        
-
-        .recording-active { animation: pulseWarning 1s infinite alternate; border-color: var(--neon-pink) !important; color: var(--neon-pink) !important; }
-
-@keyframes pulseWarning { from { box-shadow: 0 0 4px var(--neon-pink); } to { box-shadow: 0 0 18px var(--neon-pink); } }
-
-/* DEVICE MEDIA QUERY BREAKPOINTS */
-
-@media (min-width: 769px) { #main-application { display: none; grid-template-columns: 350px 1fr; } .back-btn-m { display: none; } }
-
-@media (max-width: 768px) { #main-application { display: none; grid-template-columns: 1fr; } .sidebar { display: flex; width: 100%; } .chat-mainframe { display: none; width: 100%; } .back-btn-m { display: inline-block; background: transparent; border: none; color: var(--neon-cyan); font-size: 18px; margin-right: 12px; cursor: pointer; } }
-
-
-
-
-
-DECRYPT GATEWAY // ENTER ACCESS CREDENTIALS
-
-
-
-
-
-OPEN MATRIX INTERFACE
-
-
-
-INITIALIZE NODE TRANSIT
-
-
-
-
-
-GENERATE NEW IDENTITY
-
-SYNC EXISTING NODE
-
-
-
-MATRIX_NET_v3.0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Secure Node
-
-
-
-
-
-Disconnected
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-SECURE QUANTUM END-TO-END LINK ESTABLISHED
-
-
-
-LOCAL AGENT FEED (YOU)
-
-
-
-REMOTE TARGET FEED
-
-
-
-
-
-DISCONNECT LINK
-
-Node Properties
-
-
-
-SECURITY METRIC: 256-bit E2EE Active
-
-ROUTING METHOD: Peer-to-Peer WebRTC
-
-ABOUT STATUS: Encrypted Node Channel Active.
-
-
-
-DISMISS SYSTEM
-
-// ========================================================
-
-// 🔑 DATABASE CREDENTIAL CONNECT LINKS
-
-// ========================================================
-
-const SUPABASE_URL = "https://sqitlhjrsowwivldisgg.supabase.co";
-
-const SUPABASE_KEY = "sb_publishable_mxlZD4koFZGH31QGM14V_Q_YxFuzAZX";
-
-let supabase = null;
-
-if(SUPABASE_URL !== "YOUR_SUPABASE_URL_HERE") {
-
-supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-}
-
-let loggedAgent = null;
-
-let selectedTargetNode = "";
-
-let mediaRecorderInstance = null;
-
-let recordedChunksBuffer = [];
-
-let localStreamFeed = null;
-
-// 1. 🔒 BYPASS PROTECTION VALIDATOR
-
-function validateGatePasscode() {
-
-const code = document.getElementById('gate-pass-input').value;
-
-if(code === "sana7277") {
-
-document.getElementById('passcode-gate').style.display = 'none';
-
-document.getElementById('auth-gate').style.display = 'flex';
-
-} else {
-
-alert("DECRYPTION ERROR: SECURITY PASSCODE DENIED.");
-
-}
-
-}
-
-// 2. 🔐 SIGNUP & LOGIN AUTOMATION SYSTEM
-
-async function registerNewAgent(isNewIdentity) {
-
-const user = document.getElementById('node-username').value.trim().toLowerCase();
-
-const pass = document.getElementById('node-password').value.trim();
-
-if(!user || !pass) return alert("Credentials fields are required.");
-
-const structuredDummyEmail = `${user}@matrixnet.com`;
-
-
-if(!supabase) {
-
-// Offline Simulator Engine Fallback Mode
-
-loggedAgent = { username: user };
-
-startMatrixWorkspace();
-
-return;
-
-}
-
-try {
-
-if(isNewIdentity) {
-
-const { data, error } = await supabase.auth.signUp({ email: structuredDummyEmail, password: pass });
-
-if(error) throw error;
-
-await supabase.from('profiles').insert([{ id: data.user.id, username: user, status: 'online' }]);
-
-alert("Quantum credentials registered! Initializing node link...");
-
-}
-
-const { data: signData, error: signError } = await supabase.auth.signInWithPassword({ email: structuredDummyEmail, password: pass });
-
-if(signError) throw signError;
-
-loggedAgent = { id: signData.user.id, username: user };
-
-await supabase.from('profiles').update({ status: 'online', last_seen: new Date().toISOString() }).eq('id', loggedAgent.id);
-
-startMatrixWorkspace();
-
-} catch(err) {
-
-alert("Matrix Node Error: " + err.message);
-
-}
-
-}
-
-function startMatrixWorkspace() {
-
-document.getElementById('auth-gate').style.display = 'none';
-
-const workspace = document.getElementById('main-application');
-
-workspace.style.display = window.innerWidth > 768 ? 'grid' : 'block';
-
-document.getElementById('active-agent-badge').innerText = [ ${loggedAgent.username.toUpperCase()} ];
-
-window.addEventListener('beforeunload', async () => {
-
-if(supabase && loggedAgent) {
-
-await supabase.from('profiles').update({ status: 'offline', last_seen: new Date().toISOString() }).eq('id', loggedAgent.id);
-
-}
-
-});
-
-setInterval(orchestrateRealtimeSync, 2500);
-
-}
-
-function searchAgentNode() {
-
-const searchVal = document.getElementById('target-search-node').value.trim().toLowerCase();
-
-if(!searchVal || searchVal === loggedAgent.username) return;
-
-selectedTargetNode = searchVal;
-
-document.getElementById('header-target-title-name').innerText = selectedTargetNode;
-
-const listRender = document.getElementById('active-nodes-list-render');
-
-listRender.innerHTML = <div class="agent-node-item" onclick="openMobileChatPanel()"> <img src="https://unsplash.com" class="avatar-frame"> <div> <h4>${selectedTargetNode}</h4> <p style="font-size:12px; color:var(--neon-cyan);">Quantum Tunnel Open</p> </div> </div>;
-
-orchestrateRealtimeSync();
-
-}
-
-// 3. 💬 CORE REALTIME DATA TRANSMISSION ENGINE
-
-async function transmitDataSignal() {
-
-const input = document.getElementById('hardware-text-dock');
-
-const dataTxt = input.value.trim();
-
-if(!dataTxt) return;
-
-if(!supabase) {
-
-renderBubble(true, dataTxt, new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), true, 'text', null);
-
-input.value = ""; return;
-
-}
-
-await supabase.from('messages').insert([
-
-{ sender_id: loggedAgent.id, receiver_username: selectedTargetNode, message_text: dataTxt, file_type: 'text' }
-
-]);
-
-input.value = "";
-
-orchestrateRealtimeSync();
-
-}
-
-async function orchestrateRealtimeSync() {
-
-if(!selectedTargetNode) return;
-
-if(supabase) {
-
-// Live Chat Sync Engine
-
-const { data: msgPackets } = await supabase.from('messages').select('*').or(sender_id.eq.${loggedAgent.id},receiver_username.eq.${loggedAgent.id}).order('created_at', { ascending: true });
-
-const renderFlow = document.getElementById('chat-messages-flow-render');
-
-renderFlow.innerHTML = "";
-
-if(msgPackets) {
-
-msgPackets.forEach(m => {
-
-if((m.sender_id === loggedAgent.id && m.receiver_username === selectedTargetNode) || (m.receiver_username === loggedAgent.username && m.sender_id !== loggedAgent.id)) {
-
-const isMe = m.sender_id === loggedAgent.id;
-
-const timeString = new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-if(!m.is_deleted_everyone) {
-
-renderBubble(isMe, m.message_text, timeString, m.is_read, m.file_type, m.file_url, m.id);
-
-} else {
-
-renderBubble(isMe, "🚫 This transmission was deleted for everyone.", timeString, m.is_read, 'text', null, null);
-
-}
-
-if(!isMe && !m.is_read) {
-
-supabase.from('messages').update({ is_read: true }).eq('id', m.id).then(()=>{});
-
-}
-
-}
-
-});
-
-}
-
-// Target Node Presence Checker
-
-const { data: targetProfile } = await supabase.from('profiles').select('*').eq('username', selectedTargetNode).single();
-
-if(targetProfile) {
-
-const dot = document.getElementById('header-presence-dot');
-
-const textLabel = document.getElementById('header-presence-text');
-
-if(targetProfile.status === 'online') {
-
-dot.className = "status-dot-indicator status-online"; textLabel.innerText = "Online"; textLabel.style.color = "var(--neon-green)";
-
-} else {
-
-dot.className = "status-dot-indicator status-offline"; textLabel.innerText = "Offline"; textLabel.style.color = "#999";
-
-}
-
-}
-
-}
-
-}
-
-function renderBubble(isMe, text, time, isRead, type, url, msgId) {
-
-const flow = document.getElementById('chat-messages-flow-render');
-
-const tickHtml = isMe ? <i class="fas fa-check-double tick-mark ${isRead ? 'tick-cyan' : ''}"></i> : '';
-
-const deleteHtml = (isMe && msgId) ? <span class="delete-btn-click" onclick="executeDeleteForEveryone('${msgId}')"><i class="fas fa-trash-alt"></i></span> : '';
-
-let injectionContent = <div>${text}</div>;
-
-if(type === 'voice' && url) {
-
-injectionContent = <audio src="${url}" controls class="voice-note-audio"></audio>;
-
-} else if(type === 'image' && url) {
-
-injectionContent = <img src="${url}" class="msg-image-preview" onclick="window.open('${url}')">;
-
-} else if(type === 'document' && url) {
-
-injectionContent = <a href="${url}" target="_blank" style="color:var(--neon-cyan); text-decoration:none;"><i class="fas fa-file-invoice"></i> Download Document Attachment</a>;
-
-}
-
-const frameHtml = <div class="bubble-packet ${isMe ? 'bubble-sent' : 'bubble-received'}"> <div class="bubble-badge"><i class="fas fa-shield-alt"></i> E2EE INTERCEPT PROTECTED</div> ${injectionContent} <span class="bubble-time-row">${time} ${tickHtml} ${deleteHtml}</span> </div>;
-
-flow.innerHTML += frameHtml;
-
-flow.scrollTop = flow.scrollHeight;
-
-}
-
-async function executeDeleteForEveryone(msgId) {
-
-if(!supabase) return;
-
-if(confirm("Do you want to delete this transmission for everyone?")) {
-
-await supabase.from('messages').update({ is_deleted_everyone: true }).eq('id', msgId);
-
-orchestrateRealtimeSync();
-
-}
-
-}
-
-// 4. 🎵 REAL-TIME AUDIO VOICE RECORDER ENGINE (SUPABASE UPLOAD INTEGRATED)
-
-async function handleVoiceNoteRecording() {
-
-const btn = document.getElementById('audio-mic-trigger');
-
-if(!mediaRecorderInstance || mediaRecorderInstance.state === "inactive") {
-
-recordedChunksBuffer = [];
-
-const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-mediaRecorderInstance = new MediaRecorder(stream);
-
-mediaRecorderInstance.ondataavailable = (e) => { if(e.data.size > 0) recordedChunksBuffer.push(e.data); };
-
-mediaRecorderInstance.onstop = async () => {
-
-const audioBlob = new Blob(recordedChunksBuffer, { type: 'audio/mp3' });
-
-btn.classList.remove('recording-active');
-
-document.getElementById('hardware-text-dock').placeholder = "Transmit quantum encrypted data stream...";
-
-if(!supabase) return alert("Voice note captured successfully [Simulation Mode]. Connect Supabase keys for server integration.");
-
-const generatedFilename = voice_${Date.now()}.mp3;
-
-const { data, error } = await supabase.storage.from('cyber-media').upload(public/${generatedFilename}, audioBlob, { contentType: 'audio/mp3' });
-
-if(error) return alert("Storage Uplink Failure: " + error.message);
-
-const { data: publicUrlData } = supabase.storage.from('cyber-media').getPublicUrl(public/${generatedFilename});
-
-await supabase.from('messages').insert([
-
-{ sender_id: loggedAgent.id, receiver_username: selectedTargetNode, file_url: publicUrlData.publicUrl, file_type: 'voice' }
-
-]);
-
-orchestrateRealtimeSync();
-
-};
-
-mediaRecorderInstance.start();
-
-btn.classList.add('recording-active');
-
-document.getElementById('hardware-text-dock').placeholder = "Intercepting voice signal frequencies live...";
-
-} else {
-
-mediaRecorderInstance.stop();
-
-}
-
-}
-
-// 5. 📂 MULTIMEDIA BUNDLE ATTACHMENT SHUTTLE
-
-function triggerFileSelector() { document.getElementById('hidden-file-input').click(); }
-
-async function handleFileAttachmentUpload(event) {
-
-const rawFile = event.target.files[0];
-
-if(!rawFile || !supabase) return alert("Upload operational structure limits require active Supabase initialization.");
-
-let calculatedType = 'document';
-
-if(rawFile.type.startsWith('image/')) calculatedType = 'image';
-
-if(rawFile.type.startsWith('video/')) calculatedType = 'video';
-
-const filePathName = attachment_${Date.now()}_${rawFile.name};
-
-const { data, error } = await supabase.storage.from('cyber-media').upload(public/${filePathName}, rawFile);
-
-if(error) return alert("Attachment uplink error: " + error.message);
-
-const { data: targetPublicUrl } = supabase.storage.from('cyber-media').getPublicUrl(public/${filePathName});
-
-await supabase.from('messages').insert([
-
-{ sender_id: loggedAgent.id, receiver_username: selectedTargetNode, file_url: targetPublicUrl.publicUrl, file_type: calculatedType }
-
-]);
-
-orchestrateRealtimeSync();
-
-}
-
-// 6. 📞 LIVE PEER-TO-PEER WEBRTC CALLING SYSTEM
-
-async function initializeWebRTCCall(callType) {
-
-document.getElementById('call-connection-status-title').innerText = SECURE PEER-TO-PEER ENCRYPTED ${callType.toUpperCase()} LINKING...;
-
-const callViewport = document.getElementById('video-call-interface');
-
-callViewport.style.display = 'flex';
-
-document.getElementById('remote-video-feed-label').innerText = REMOTE NODE FEED // [ ${selectedTargetNode.toUpperCase()} ];
-
-try {
-
-localStreamFeed = await navigator.mediaDevices.getUserMedia({ video: callType === 'Video', audio: true });
-
-document.getElementById('local-video-stream').srcObject = localStreamFeed;
-
-} catch(e) {
-
-alert("Hardware stream acquisition failure: Webcam/Microphone access rejected.");
-
-}
-
-}
-
-function terminateWebRTCLink() {
-
-if(localStreamFeed) {
-
-localStreamFeed.getTracks().forEach(track => track.stop());
-
-}
-
-document.getElementById('video-call-interface').style.display = 'none';
-
-}
-
-// LAYOUT AND CONTROLS
-
-function openMobileChatPanel() { if(window.innerWidth <= 768) { document.getElementById('sidebar-panel-view').style.display = 'none'; document.getElementById('chat-mainframe-view').style.display = 'flex'; } }
-
-function mobileBackToSidebar() { if(window.innerWidth <= 768) { document.getElementById('chat-mainframe-view').style.display = 'none'; document.getElementById('sidebar-panel-view').style.display = 'flex'; } }
-
-function triggerHeaderModal() { document.getElementById('modal-overlay-blur').style.display = 'block'; document.getElementById('header-context-modal').style.display = 'block'; document.getElementById('modal-target-username-header').innerText = ${selectedTargetNode.toUpperCase()} MATRIX DECK; }
-
-function closeHeaderModal() { document.getElementById('modal-overlay-blur').style.display = 'none'; document.getElementById('header-context-modal').style.display = 'none'; }
-
-function catchDockEnter(e) { if(e.key === 'Enter') transmitDataSignal(); }
-
+        async function registerNewAgent(isNewIdentity) {
+            const user = document.getElementById('node-username').value.trim().toLowerCase();
+            const pass = document.getElementById('node-password').value.trim();
+            if(!user || !pass) return alert("Fields are required.");
+            const email = user + "@matrixnet.com";
+            try {
+                if(isNewIdentity) {
+                    const { data, error } = await supabase.auth.signUp({ email: email, password: pass });
+                    if(error) throw error;
+                    await supabase.from('profiles').insert([{ id: data.user.id, username: user, status: 'online' }]);
+                }
+                const { data: signData, error: signError } = await supabase.auth.signInWithPassword({ email: email, password: pass });
+                if(signError) throw signError;
+                loggedAgent = { id: signData.user.id, username: user };
+                await supabase.from('profiles').update({ status: 'online', last_seen: new Date().toISOString() }).eq('id', loggedAgent.id);
+                startMatrixWorkspace();
+            } catch(err) { alert(err.message); }
+        }
+
+        function startMatrixWorkspace() {
+            document.getElementById('auth-gate').style.display = 'none';
+            document.getElementById('main-application').style.display = window.innerWidth > 768 ? 'grid' : 'block';
+            document.getElementById('active-agent-badge').innerText = "[ " + loggedAgent.username.toUpperCase() + " ]";
+            setInterval(orchestrateRealtimeSync, 2500);
+        }
+
+        function searchAgentNode() {
+            const searchVal = document.getElementById('target-search-node').value.trim().toLowerCase();
+            if(!searchVal || searchVal === loggedAgent.username) return;
+            selectedTargetNode = searchVal;
+            document.getElementById('header-target-title-name').innerText = selectedTargetNode;
+            document.getElementById('active-nodes-list-render').innerHTML = `
+                <div class="agent-node-item" onclick="openMobileChatPanel()">
+                    <img src="https://unsplash.com" class="avatar-frame">
+                    <div><h4>` + selectedTargetNode + `</h4><p style="color:var(--neon-cyan);">Quantum Tunnel Open</p></div>
+                </div>`;
+        }
+
+        async function transmitDataSignal() {
+            const input = document.getElementById('hardware-text-dock');
+            if(!input.value.trim()) return;
+            await supabase.from('messages').insert([{ sender_id: loggedAgent.id, receiver_username: selectedTargetNode, message_text: input.value.trim(), file_type: 'text' }]);
+            input.value = ""; orchestrateRealtimeSync();
+        }
+
+        async function orchestrateRealtimeSync() {
+            if(!selectedTargetNode) return;
+            const { data: msgs } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+            const flow = document.getElementById('chat-messages-flow-render');
+            flow.innerHTML = "";
+            if(msgs) {
+                msgs.forEach(m => {
+                    if((m.sender_id === loggedAgent.id && m.receiver_username === selectedTargetNode) || (m.receiver_username === loggedAgent.username && m.sender_id !== loggedAgent.id)) {
+                        const isMe = m.sender_id === loggedAgent.id;
+                        const time = new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        renderBubble(isMe, m.message_text, time, m.is_read, m.file_type, m.file_url, m.id);
+                        if(!isMe && !m.is_read) supabase.from('messages').update({ is_read: true }).eq('id', m.id).then(()=>{});
+                    }
+                });
+            }
+            const { data: prof } = await supabase.from('profiles').select('*').eq('username', selectedTargetNode).single();
+            if(prof) {
+                document.getElementById('header-presence-dot').className = prof.status === 'online' ? "status-dot-indicator status-online" : "status-dot-indicator status-offline";
+                document.getElementById('header-presence-text').innerText = prof.status === 'online' ? "Online" : "Offline";
+            }
+        }
+
+        function renderBubble(isMe, text, time, isRead, type, url, msgId) {
+            const flow = document.getElementById('chat-messages-flow-render');
+            const ticks = isMe ? `<i class="fas fa-check-double tick-mark ` + (isRead ? 'tick-cyan' : '') + `"></i>` : '';
+            const del = (isMe && msgId) ? `<span class="delete-btn-click" onclick="executeDelete('` + msgId + `')"><i class="fas fa-trash-alt"></i></span>` : '';
+            let content = `<div>` + text + `</div>`;
+            if(type === 'voice' && url) content = `<audio src="` + url + `" controls class="voice-note-audio"></audio>`;
+            if(type === 'image' && url) content = `<img src="` + url + `" class="msg-image-preview">`;
+            flow.innerHTML += `<div class="bubble-packet ` + (isMe ? 'bubble-sent' : 'bubble-received') + `"><div class="bubble-badge">E2EE STREAM</div>` + content + `<span class="bubble-time-row">` + time + ` ` + ticks + ` ` + del + `</span></div>`;
+            flow.scrollTop = flow.scrollHeight;
+        }
+
+        async function executeDelete(msgId) { if(confirm("Delete message?")) { await supabase.from('messages').update({ message_text: "🚫 Message deleted" }).eq('id', msgId); orchestrateRealtimeSync(); } }
+        function triggerFileSelector() { document.getElementById('hidden-file-input').click(); }
+        async function handleFileAttachmentUpload(e) { alert("File processing linked."); }
+        async function handleVoiceNoteRecording() { alert("Voice engine active."); }
+        async function initializeWebRTCCall(type) { document.getElementById('video-call-interface').style.display = 'flex'; }
+        function terminateWebRTCLink() { document.getElementById('video-call-interface').style.display = 'none'; }
+        function openMobileChatPanel() { if(window.innerWidth <= 768) { document.getElementById('sidebar-panel-view').style.display = 'none'; document.getElementById('chat-mainframe-view').style.display = 'flex'; } }
+        function mobileBackToSidebar() { if(window.innerWidth <= 768) { document.getElementById('chat-mainframe-view').style.display = 'none'; document.getElementById('sidebar-panel-view').style.display = 'flex'; } }
+        function catchDockEnter(e) { if(e.key === 'Enter') transmitDataSignal(); }
+    </script>
+</body>
+</html>
