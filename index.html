@@ -1,278 +1,591 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER_CORE // ADVANCED QUANTUM MESSENGER</title>
-    <script src="https://jsdelivr.net"></script>
-    <link href="https://googleapis.com" rel="stylesheet">
-    <link rel="stylesheet" href="https://cloudflare.com">
-    
-    <style>
-        :root {
-            --neon-cyan: #00f3ff;
-            --neon-pink: #ff0055;
-            --neon-green: #39ff14;
-            --dark-bg: #030307;
-            --panel-bg: rgba(8, 8, 18, 0.96);
-            --cyber-font: 'Rajdhani', sans-serif;
-            --futuristic-font: 'Orbitron', sans-serif;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background-color: var(--dark-bg); color: #fff; font-family: var(--cyber-font);
-            height: 100vh; overflow: hidden;
-            background-image: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), url('https://unsplash.com');
-            background-size: cover; background-position: center;
-        }
-        #passcode-gate {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 10000; padding: 20px;
-        }
-        .gate-title { font-family: var(--futuristic-font); color: var(--neon-cyan); text-shadow: 0 0 12px var(--neon-cyan); margin-bottom: 30px; letter-spacing: 3px; text-align: center; font-size: 1.6rem; }
-        .gate-box { background: var(--panel-bg); padding: 35px; border: 2px solid var(--neon-pink); box-shadow: 0 0 30px rgba(255, 0, 85, 0.25); width: 100%; max-width: 380px; text-align: center; }
-        .gate-box input { width: 100%; background: #000; border: 1px solid var(--neon-cyan); color: var(--neon-green); padding: 15px; font-family: var(--futuristic-font); text-align: center; font-size: 20px; margin-bottom: 20px; outline: none; letter-spacing: 4px; }
-        .gate-box button { width: 100%; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); padding: 14px; font-family: var(--futuristic-font); cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 15px; }
-        .gate-box button:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 15px var(--neon-pink); }
-        #auth-gate { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: var(--dark-bg); justify-content: center; align-items: center; z-index: 9999; padding: 20px; }
-        .auth-box { border-color: var(--neon-cyan) !important; box-shadow: 0 0 30px rgba(0, 243, 255, 0.25) !important; }
-        .auth-box input { width: 100%; background: #000; border: 1px solid rgba(0, 243, 255, 0.4); color: #fff; padding: 14px; margin-bottom: 15px; outline: none; font-size: 16px; font-family: var(--cyber-font); }
-        #main-application { display: none; height: 100vh; width: 100vw; }
-        .sidebar { background: var(--panel-bg); border-right: 1px solid rgba(0, 243, 255, 0.2); display: flex; flex-direction: column; height: 100%; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(0, 243, 255, 0.15); display: flex; justify-content: space-between; align-items: center; font-family: var(--futuristic-font); color: var(--neon-cyan); }
-        .search-bar-box { padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 10px; }
-        .search-bar-box input { flex:1; background: #000; border: 1px solid rgba(0,243,255,0.3); padding: 10px 14px; color: #fff; outline: none; font-family: var(--cyber-font); font-size: 15px; }
-        .search-bar-box button { background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); padding: 0 15px; cursor: pointer; }
-        .chat-stream-list { flex: 1; overflow-y: auto; }
-        .agent-node-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        .avatar-frame { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--neon-pink); margin-right: 14px; object-fit: cover; }
-        .chat-mainframe { display: flex; flex-direction: column; background: rgba(4,4,8,0.94); height: 100%; }
-        .chat-mainframe-header { background: var(--panel-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 243, 255, 0.2); }
-        .target-profile-area { display: flex; align-items: center; cursor: pointer; }
-        .status-dot-indicator { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 7px; }
-        .status-online { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
-        .status-offline { background: #555; }
-        .header-calling-actions button { background: transparent; border: none; color: var(--neon-cyan); font-size: 19px; margin-left: 18px; cursor: pointer; }
-        .messages-container-flow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
-        .bubble-packet { display: flex; flex-direction: column; max-width: 68%; padding: 12px 16px; border-radius: 4px; font-size: 15px; }
-        .bubble-sent { align-self: flex-end; background: rgba(0, 243, 255, 0.07); border: 1px solid var(--neon-cyan); }
-        .bubble-received { align-self: flex-start; background: rgba(255, 0, 85, 0.07); border: 1px solid var(--neon-pink); }
-        .bubble-badge { font-size: 9px; color: var(--neon-green); font-family: var(--futuristic-font); margin-bottom: 5px; }
-        .bubble-time-row { font-size: 11px; color: #666; margin-top: 6px; text-align: right; }
-        .tick-mark { margin-left: 6px; font-size: 11px; }
-        .tick-cyan { color: var(--neon-cyan); text-shadow: 0 0 6px var(--neon-cyan); }
-        .delete-btn-click { font-size: 10px; color: var(--neon-pink); cursor: pointer; margin-left: 8px; float: right; }
-        .hardware-input-bar { background: var(--panel-bg); padding: 16px; display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(0, 243, 255, 0.15); }
-        .hardware-input-bar input { flex: 1; background: #000; border: 1px solid rgba(0, 243, 255, 0.3); padding: 14px; color: #fff; outline: none; font-family: var(--cyber-font); }
-        .hardware-input-bar button { background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); width: 46px; height: 46px; cursor: pointer; }
-        .voice-note-audio { max-width: 240px; margin-top: 5px; filter: hue-rotate(180deg) invert(90%); }
-        .msg-image-preview { max-width: 100%; border-radius: 4px; margin-top: 6px; }
-        #video-call-interface { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: #050508; z-index: 20000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .video-viewport-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 800px; height: 60vh; }
-        .video-box { background: #000; border: 2px solid var(--neon-cyan); position: relative; }
-        .video-box video { width: 100%; height: 100%; object-fit: cover; }
-        .recording-active { animation: pulseWarning 1s infinite alternate; border-color: var(--neon-pink) !important; color: var(--neon-pink) !important; }
-        @keyframes pulseWarning { from { box-shadow: 0 0 4px var(--neon-pink); } to { box-shadow: 0 0 18px var(--neon-pink); } }
-        @media (min-width: 769px) { #main-application { display: none; grid-template-columns: 350px 1fr; } .back-btn-m { display: none; } }
-        @media (max-width: 768px) { #main-application { display: none; grid-template-columns: 1fr; } .sidebar { display: flex; width: 100%; } .chat-mainframe { display: none; width: 100%; } .back-btn-m { display: inline-block; background: transparent; border: none; color: var(--neon-cyan); margin-right: 12px; } }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05060b">
+<title>CYBER_CORE // Secure Social</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#030409;--panel:#080b13;--panel2:#0c101a;--line:#16e8ff;--pink:#ff176f;--text:#e9faff;--muted:#7e8a9c;--good:#25e98b;--danger:#ff4d67;--shadow:0 0 28px rgba(22,232,255,.12),0 0 28px rgba(255,23,111,.08)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% 20%,#07111b 0,#030409 42%,#010207 100%);color:var(--text);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
+.hidden{display:none!important}.screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{width:min(470px,92vw);border:1px solid var(--line);box-shadow:var(--shadow);background:rgba(5,7,13,.93);padding:30px}
+.gateway{border-color:var(--pink);box-shadow:0 0 30px rgba(255,23,111,.18)}h1,h2,h3{margin:0 0 16px;text-transform:uppercase;letter-spacing:2px}h1{font-size:25px;color:#13efff;text-shadow:0 0 12px #00eaff}h2{font-size:18px}.sub{color:var(--muted);font-size:12px}.field{width:100%;background:#02040a;border:1px solid #18cfe5;padding:13px 14px;outline:0;margin:8px 0}.field:focus{box-shadow:0 0 14px rgba(22,232,255,.16)}
+.btn{border:1px solid var(--line);background:#050911;padding:12px 15px;text-transform:uppercase;letter-spacing:1px}.btn:hover{box-shadow:0 0 15px rgba(22,232,255,.18)}.btn.pink{border-color:var(--pink);color:#ff4e90}.btn.good{border-color:var(--good);color:var(--good)}.row{display:flex;gap:9px;align-items:center}.stack>*+*{margin-top:10px}
+.error{color:#ff6b7e;min-height:20px;font-size:12px}.ok{color:#38f1a0}.matrix{position:fixed;inset:0;pointer-events:none;opacity:.08;background-image:linear-gradient(rgba(0,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,120,.05) 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(#000,transparent)}
+.app{height:100vh;display:grid;grid-template-columns:310px 1fr 300px;overflow:hidden}.sidebar,.rightbar{background:rgba(5,8,14,.95);border-color:#172333}.sidebar{border-right:1px solid #152230;display:flex;flex-direction:column}.rightbar{border-left:1px solid #152230;padding:18px;overflow:auto}.brand{padding:20px;border-bottom:1px solid #162433}.brand strong{color:#12edff;font-size:18px}.me{padding:15px;border-bottom:1px solid #162433;display:flex;gap:12px;align-items:center}.avatar{width:42px;height:42px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;background:#060b12;overflow:hidden;flex:0 0 auto}.avatar img{width:100%;height:100%;object-fit:cover}.online{width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block;box-shadow:0 0 8px var(--good)}.search{padding:12px}.chatlist{overflow:auto}.chat{padding:13px;border-top:1px solid #101a27;display:flex;gap:10px;cursor:pointer}.chat:hover,.chat.active{background:#0b121d}.chat .preview{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.main{min-width:0;display:flex;flex-direction:column;background:rgba(2,4,8,.8)}.topbar{height:67px;border-bottom:1px solid #172333;padding:11px 17px;display:flex;align-items:center;justify-content:space-between}.chathead{display:flex;align-items:center;gap:12px}.messages{flex:1;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:8px}.empty{margin:auto;text-align:center;color:var(--muted)}.bubble{max-width:min(72%,650px);padding:9px 11px;border:1px solid #203143;background:#0a1019;border-radius:5px;align-self:flex-start}.bubble.mine{align-self:flex-end;border-color:#0d7580;background:#07151a}.meta{font-size:9px;color:#718093;margin-top:5px}.composer{border-top:1px solid #172333;padding:11px;display:flex;gap:8px}.composer input{flex:1}.toolrow{display:flex;gap:5px}.tiny{padding:8px 9px}.typing{height:20px;color:#13eaff;font-size:11px;padding-left:18px}.panel-title{color:#10eaff;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin:18px 0 8px}.setting{border:1px solid #182737;padding:11px;margin:8px 0;background:#070b12}.tabs{display:flex;gap:5px;overflow:auto}.tabs button{white-space:nowrap}.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:grid;place-items:center;padding:18px;z-index:20}.modal .card{max-height:90vh;overflow:auto}.status{display:inline-flex;gap:7px;align-items:center}.dot{width:6px;height:6px;border-radius:50%;background:#5e6b7d}.toast{position:fixed;right:18px;bottom:18px;background:#07131a;border:1px solid var(--line);padding:12px 14px;z-index:50;box-shadow:var(--shadow)}.danger{color:var(--danger)}.callbox{position:fixed;inset:20px;z-index:30;background:#02040a;border:1px solid var(--line);box-shadow:var(--shadow);display:grid;grid-template-columns:1fr 260px;gap:10px;padding:10px}.callvideo{background:#05070c;border:1px solid #142131;display:grid;place-items:center}.callvideo video{max-width:100%;max-height:100%}.small{font-size:11px}.kbd{border:1px solid #314154;padding:1px 5px;border-radius:3px;color:#9ba8b8}@media(max-width:1050px){.app{grid-template-columns:270px 1fr}.rightbar{display:none}}@media(max-width:700px){.app{grid-template-columns:1fr}.sidebar{display:none}.topbar{height:60px}.messages{padding:12px}.bubble{max-width:88%}.composer{padding:8px}.card{padding:22px}.callbox{inset:5px;grid-template-columns:1fr}.callbox .side{display:none}}
+</style>
 </head>
 <body>
+<div class="matrix"></div>
 
-    <div id="passcode-gate">
-        <div class="gate-title">DECRYPT GATEWAY // ENTER ACCESS CREDENTIALS</div>
-        <div class="gate-box">
-            <input type="password" id="gate-pass-input" placeholder="PASSCODE">
-            <button onclick="validateGatePasscode()">OPEN MATRIX INTERFACE</button>
-        </div>
+<!--
+CYBER_CORE // ONE-FILE APP
+
+IMPORTANT SECURITY:
+- A passcode placed in index.html is only a UI gate. It cannot be made
+  truly non-bypassable because the browser receives this source.
+- For a real gateway, use an HTTPS reverse proxy / Edge Function that
+  verifies the passcode BEFORE returning the app.
+- NEVER put a Supabase service_role key in this file. Use only the anon key.
+- Username-only login below uses a synthetic internal email ending in
+  @local.invalid so Supabase Auth can still provide password authentication.
+-->
+
+<section id="gateway" class="screen">
+  <div class="card gateway">
+    <h1>DECRYPT GATEWAY</h1>
+    <p class="sub">ENTER ACCESS CREDENTIALS // PRIVATE NODE</p>
+    <input id="gatePass" class="field" type="password" placeholder="PASSCODE" autocomplete="off">
+    <button id="gateBtn" class="btn pink" style="width:100%">OPEN MATRIX INTERFACE</button>
+    <div id="gateErr" class="error"></div>
+  </div>
+</section>
+
+<section id="auth" class="screen hidden">
+  <div class="card">
+    <h1>INITIALIZE NODE</h1>
+    <p class="sub">CREATE A NEW IDENTITY OR SYNC AN EXISTING NODE</p>
+    <div class="tabs" style="margin:15px 0">
+      <button id="showRegister" class="btn">GENERATE NEW IDENTITY</button>
+      <button id="showLogin" class="btn pink">SYNC EXISTING NODE</button>
     </div>
+    <div id="authForm"></div>
+    <div id="authMsg" class="error"></div>
+  </div>
+</section>
 
-    <div id="auth-gate">
-        <div class="gate-box auth-box">
-            <div class="gate-title" style="font-size:1.2rem; margin-bottom:15px;">INITIALIZE NODE TRANSIT</div>
-            <input type="text" id="node-username" placeholder="CHOOSE AGENT USERNAME">
-            <input type="password" id="node-password" placeholder="SECURE PASSWORD">
-            <button onclick="registerNewAgent(true)" style="border-color:var(--neon-cyan); color:var(--neon-cyan); margin-bottom:12px;">GENERATE NEW IDENTITY</button>
-            <button onclick="registerNewAgent(false)">SYNC EXISTING NODE</button>
-        </div>
+<section id="app" class="app hidden">
+  <aside class="sidebar">
+    <div class="brand"><strong>CYBER_CORE</strong><div class="sub">SECURE SOCIAL NODE</div></div>
+    <div class="me" id="meBox"></div>
+    <div class="search"><input id="userSearch" class="field" placeholder="SEARCH USERS..." style="margin:0"></div>
+    <div id="searchResults"></div>
+    <div class="chatlist" id="chatList"></div>
+    <div style="padding:12px;border-top:1px solid #162433">
+      <button class="btn tiny" id="newChatBtn">+ NEW CHAT</button>
+      <button class="btn tiny" id="logoutBtn">LOGOUT</button>
     </div>
+  </aside>
 
-    <div id="main-application">
-        <div class="sidebar" id="sidebar-panel-view">
-            <div class="sidebar-header">
-                <span><i class="fas fa-network-wired"></i> MATRIX_NET_v3.0</span>
-                <span id="active-agent-badge" style="color:var(--neon-pink); font-size:13px;"></span>
-            </div>
-            <div class="search-bar-box">
-                <input type="text" id="target-search-node" placeholder="Search target username...">
-                <button onclick="searchAgentNode()"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="chat-stream-list" id="active-nodes-list-render"></div>
-        </div>
-
-        <div class="chat-mainframe" id="chat-mainframe-view">
-            <div class="chat-mainframe-header">
-                <div class="target-profile-area">
-                    <button class="back-btn-m" onclick="mobileBackToSidebar()"><i class="fas fa-arrow-left"></i></button>
-                    <div style="display:flex; align-items:center;">
-                        <img src="https://unsplash.com" class="avatar-frame">
-                        <div>
-                            <h3 id="header-target-title-name" style="font-size:16px;">Secure Node</h3>
-                            <div style="display:flex; align-items:center; font-size:12px; color:#999;">
-                                <span id="header-presence-dot" class="status-dot-indicator status-offline"></span>
-                                <span id="header-presence-text">Disconnected</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="header-calling-actions">
-                    <button onclick="initializeWebRTCCall('Audio')"><i class="fas fa-phone-alt"></i></button>
-                    <button onclick="initializeWebRTCCall('Video')"><i class="fas fa-video"></i></button>
-                </div>
-            </div>
-
-            <div class="messages-container-flow" id="chat-messages-flow-render"></div>
-
-            <div class="hardware-input-bar">
-                <button id="audio-mic-trigger" onclick="handleVoiceNoteRecording()"><i class="fas fa-microphone"></i></button>
-                <button onclick="triggerFileSelector()"><i class="fas fa-paperclip"></i></button>
-                <input type="file" id="hidden-file-input" style="display: none;" onchange="handleFileAttachmentUpload(event)">
-                <input type="text" id="hardware-text-dock" placeholder="Transmit data stream..." onkeypress="catchDockEnter(event)">
-                <button onclick="transmitDataSignal()"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
+  <main class="main">
+    <header class="topbar">
+      <div id="chatHead" class="chathead"><span class="sub">SELECT A NODE TO BEGIN</span></div>
+      <div class="row">
+        <button class="btn tiny" id="audioCallBtn" title="Audio call">☎</button>
+        <button class="btn tiny" id="videoCallBtn" title="Video call">◉</button>
+        <button class="btn tiny" id="profileBtn">PROFILE</button>
+      </div>
+    </header>
+    <div id="typing" class="typing"></div>
+    <div id="messages" class="messages"><div class="empty">NO ACTIVE CHANNEL<br><span class="small">Search a username or select a chat.</span></div></div>
+    <div class="composer">
+      <div class="toolrow">
+        <button class="btn tiny" id="attachBtn">＋</button>
+        <button class="btn tiny" id="emojiBtn">☺</button>
+      </div>
+      <input id="messageInput" class="field" style="margin:0" placeholder="TRANSMIT MESSAGE..." disabled>
+      <button id="sendBtn" class="btn pink" disabled>SEND</button>
+      <input id="fileInput" type="file" hidden multiple>
     </div>
+  </main>
 
-    <div id="video-call-interface">
-        <div class="gate-title">SECURE QUANTUM LINK ESTABLISHED</div>
-        <div class="video-viewport-grid">
-            <div class="video-box"><video id="local-video-stream" autoplay playsinline muted></video></div>
-            <div class="video-box"><video id="remote-video-stream" autoplay playsinline></video></div>
-        </div>
-        <button class="gate-box" style="background:var(--neon-pink); color:#000;" onclick="terminateWebRTCLink()">DISCONNECT LINK</button>
-    </div>
-   <script>
-        // 🔑 1. DATABASE INITIALIZATION (SABSE UPAR - TAAKI ERROR KABHI NA AAYE)
-        const SUPABASE_URL = "https://supabase.co";
-        const SUPABASE_KEY = "sb_publishable_mx1ZD4koFZGH31QGM14V_Q_YxFuZAZX";
-        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        const supabase = window.supabaseClient;
+  <aside class="rightbar">
+    <div class="panel-title">NODE STATUS</div>
+    <div id="nodeStatus" class="setting">Loading...</div>
+    <div class="panel-title">QUICK ACTIONS</div>
+    <button class="btn" style="width:100%;margin:4px 0" id="statusBtn">24H STATUS</button>
+    <button class="btn" style="width:100%;margin:4px 0" id="settingsBtn">PRIVACY / SETTINGS</button>
+    <button class="btn" style="width:100%;margin:4px 0" id="archiveBtn">ARCHIVED CHATS</button>
+    <div class="panel-title">CAPABILITIES</div>
+    <div class="sub">Realtime messaging • reactions • reply • forward • pin/star • media • documents • presence • typing • browser notifications • WebRTC calls • responsive UI.</div>
+  </aside>
+</section>
 
-        // 📝 2. GLOBAL VARIABLE CONTROLS
-        let loggedAgent = null;
-        let selectedTargetNode = "";
-        let mediaRecorderInstance = null;
-        let recordedChunksBuffer = [];
-        let localStreamFeed = null;
+<div id="modal" class="modal hidden"><div class="card" id="modalBody"></div></div>
+<div id="toast" class="toast hidden"></div>
 
-        // 🔒 3. PASSCODE SYSTEM
-        function validateGatePasscode() {
-            if(document.getElementById('gate-pass-input').value === "sana7277") {
-                document.getElementById('passcode-gate').style.display = 'none';
-                document.getElementById('auth-gate').style.display = 'flex';
-            } else { alert("DECRYPTION ERROR: SECURITY PASSCODE DENIED."); }
-        }
+<div id="callBox" class="callbox hidden">
+  <div class="callvideo"><video id="remoteVideo" autoplay playsinline></video><div id="callText" class="sub">CONNECTING...</div></div>
+  <div class="side">
+    <div class="panel-title">CALL CONTROL</div>
+    <video id="localVideo" autoplay muted playsinline style="width:100%;border:1px solid #142131"></video>
+    <button class="btn" style="width:100%;margin-top:8px" id="hangupBtn">END CALL</button>
+  </div>
+</div>
 
-        // 🔐 4. AUTOMATED SIGNUP & LOGIN
-        async function registerNewAgent(isNewIdentity) {
-            const user = document.getElementById('node-username').value.trim().toLowerCase();
-            const pass = document.getElementById('node-password').value.trim();
-            if(!user || !pass) return alert("Fields are required.");
-            const email = user + "@matrixnet.com";
-            try {
-                if(isNewIdentity) {
-                    const { data, error } = await supabase.from('profiles').select('username').eq('username', user).maybeSingle();
-                    if(data) return alert("This agent identity already exists in the Grid.");
-                    
-                    const { data: authData, error: authErr } = await supabase.auth.signUp({ email: email, password: pass });
-                    if(authErr) throw authErr;
-                    await supabase.from('profiles').insert([{ id: authData.user.id, username: user, status: 'online' }]);
-                }
-                const { data: signData, error: signError } = await supabase.auth.signInWithPassword({ email: email, password: pass });
-                if(signError) throw signError;
-                loggedAgent = { id: signData.user.id, username: user };
-                await supabase.from('profiles').update({ status: 'online', last_seen: new Date().toISOString() }).eq('id', loggedAgent.id);
-                startMatrixWorkspace();
-            } catch(err) { alert(err.message); }
-        }
+<script>
+/* =========================================================
+1. CONFIGURATION
+Replace these placeholders with your Supabase project values.
+Only use the public anon key here.
+========================================================= */
+const SUPABASE_URL = "https://sqitlhjrsowwivldisgg.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = "sb_publishable_mxlZD4koFZGH31QGM14V_Q_YxFuzAZX";
 
-        // 🛰️ 5. MATRIX WORKSPACE ACTIVATION
-        function startMatrixWorkspace() {
-            document.getElementById('auth-gate').style.display = 'none';
-            document.getElementById('main-application').style.display = window.innerWidth > 768 ? 'grid' : 'block';
-            document.getElementById('active-agent-badge').innerText = "[ " + loggedAgent.username.toUpperCase() + " ]";
-            setInterval(orchestrateRealtimeSync, 2000);
-        }
+/* The requested passcode. Again: UI-only, not a real server secret. */
+const ACCESS_PASSCODE = "sana7277";
 
-        // 🔍 6. INSTAGRAM-LIKE AGENT SEARCH
-        function searchAgentNode() {
-            const searchVal = document.getElementById('target-search-node').value.trim().toLowerCase();
-            if(!searchVal || searchVal === loggedAgent.username) return;
-            selectedTargetNode = searchVal;
-            document.getElementById('header-target-title-name').innerText = selectedTargetNode;
-            document.getElementById('active-nodes-list-render').innerHTML = `
-                <div class="agent-node-item" onclick="openMobileChatPanel()">
-                    <img src="https://unsplash.com" class="avatar-frame">
-                    <div><h4>` + selectedTargetNode + `</h4><p style="color:var(--neon-cyan);">Quantum Tunnel Open</p></div>
-                </div>`;
-        }
+/* Supabase Auth requires an email identifier; the user never sees this. */
+const emailFor = username => username.trim().toLowerCase() + "@local.invalid";
 
-        // 💬 7. REAL-TIME TELEMETRY TRANSMISSION
-        async function transmitDataSignal() {
-            const input = document.getElementById('hardware-text-dock');
-            if(!input.value.trim()) return;
-            await supabase.from('messages').insert([{ sender_id: loggedAgent.id, receiver_username: selectedTargetNode, message_text: input.value.trim(), file_type: 'text' }]);
-            input.value = ""; orchestrateRealtimeSync();
-        }
+let sb = null, currentUser = null, currentProfile = null;
+let activePeer = null, activeConversation = null, realtime = null;
+let presenceChannel = null, typingTimer = null, pc = null, localStream = null;
 
-        async function orchestrateRealtimeSync() {
-            if(!selectedTargetNode) return;
-            const { data: msgs } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
-            const flow = document.getElementById('chat-messages-flow-render');
-            if(!flow) return;
-            flow.innerHTML = "";
-            if(msgs) {
-                msgs.forEach(m => {
-                    if((m.sender_id === loggedAgent.id && m.receiver_username === selectedTargetNode) || (m.receiver_username === loggedAgent.username && m.sender_id !== loggedAgent.id)) {
-                        const isMe = m.sender_id === loggedAgent.id;
-                        const time = new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        renderBubble(isMe, m.message_text, time, m.is_read, m.file_type, m.file_url, m.id);
-                        if(!isMe && !m.is_read) supabase.from('messages').update({ is_read: true }).eq('id', m.id).then(()=>{});
-                    }
-                });
-            }
-            const { data: prof } = await supabase.from('profiles').select('*').eq('username', selectedTargetNode).single();
-            if(prof) {
-                document.getElementById('header-presence-dot').className = prof.status === 'online' ? "status-dot-indicator status-online" : "status-dot-indicator status-offline";
-                document.getElementById('header-presence-text').innerText = prof.status === 'online' ? "Online" : "Offline";
-            }
-        }
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const time = ts => new Date(ts).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+function toast(s){$("toast").textContent=s;$("toast").classList.remove("hidden");clearTimeout(window.__toast);window.__toast=setTimeout(()=>$("toast").classList.add("hidden"),2800)}
+function showModal(html){$("modalBody").innerHTML=html;$("modal").classList.remove("hidden")}
+function closeModal(){$("modal").classList.add("hidden")}
+function conversationId(a,b){return [a,b].sort().join("_")}
 
-        // 🎨 8. DYNAMIC DUAL CYAN TICK RENDER
-        function renderBubble(isMe, text, time, isRead, type, url, msgId) {
-            const flow = document.getElementById('chat-messages-flow-render');
-            if(!flow) return;
-            const ticks = isMe ? `<i class="fas fa-check-double tick-mark ` + (isRead ? 'tick-cyan' : '') + `"></i>` : '';
-            const del = (isMe && msgId) ? `<span class="delete-btn-click" onclick="executeDelete('` + msgId + `')"><i class="fas fa-trash-alt"></i></span>` : '';
-            let content = `<div>` + text + `</div>`;
-            if(type === 'voice' && url) content = `<audio src="` + url + `" controls class="voice-note-audio"></audio>`;
-            if(type === 'image' && url) content = `<img src="` + url + `" class="msg-image-preview">`;
-            flow.innerHTML += `<div class="bubble-packet ` + (isMe ? 'bubble-sent' : 'bubble-received') + `"><div class="bubble-badge">E2EE STREAM</div>` + content + `<span class="bubble-time-row">` + time + ` ` + ticks + ` ` + del + `</span></div>`;
-            flow.scrollTop = flow.scrollHeight;
-        }
+/* =========================================================
+2. GATEWAY
+========================================================= */
+$("gateBtn").onclick=()=>{
+  if($("gatePass").value===ACCESS_PASSCODE){
+    sessionStorage.setItem("cc_gate","1");
+    $("gateway").classList.add("hidden");$("auth").classList.remove("hidden");renderAuth("login");
+  }else $("gateErr").textContent="ACCESS DENIED // INVALID PASSCODE";
+};
+$("gatePass").addEventListener("keydown",e=>{if(e.key==="Enter")$("gateBtn").click()});
+if(sessionStorage.getItem("cc_gate")==="1"){$("gateway").classList.add("hidden");$("auth").classList.remove("hidden")}
 
-        // 🗑️ 9. ADVANCED WHATSAPP ALTERNATIVE FEATURES
-        async function executeDelete(msgId) { if(confirm("Delete message for everyone?")) { await supabase.from('messages').update({ message_text: "🚫 This message was deleted for everyone." }).eq('id', msgId); orchestrateRealtimeSync(); } }
-        function triggerFileSelector() { document.getElementById('hidden-file-input').click(); }
-        async function handleFileAttachmentUpload(e) { alert("File processing telemetry active."); }
-        async function handleVoiceNoteRecording() { alert("Voice processing frequencies engaged."); }
-        async function initializeWebRTCCall(type) { document.getElementById('video-call-interface').style.display = 'flex'; }
-        function terminateWebRTCLink() { document.getElementById('video-call-interface').style.display = 'none'; }
-        function openMobileChatPanel() { if(window.innerWidth <= 768) { document.getElementById('sidebar-panel-view').style.display = 'none'; document.getElementById('chat-mainframe-view').style.display = 'flex'; } }
-        function mobileBackToSidebar() { if(window.innerWidth <= 768) { document.getElementById('chat-mainframe-view').style.display = 'none'; document.getElementById('sidebar-panel-view').style.display = 'flex'; } }
-        function catchDockEnter(e) { if(e.key === 'Enter') transmitDataSignal(); }
-    </script>
+function renderAuth(mode){
+  $("authForm").innerHTML=mode==="register"?`
+    <input id="aUser" class="field" placeholder="USERNAME" autocomplete="username">
+    <input id="aName" class="field" placeholder="DISPLAY NAME">
+    <input id="aPass" class="field" type="password" placeholder="PASSWORD (8+ CHARACTERS)" autocomplete="new-password">
+    <input id="aPass2" class="field" type="password" placeholder="CONFIRM PASSWORD" autocomplete="new-password">
+    <button id="authSubmit" class="btn good" style="width:100%">CREATE IDENTITY</button>`
+  :`
+    <input id="aUser" class="field" placeholder="USERNAME" autocomplete="username">
+    <input id="aPass" class="field" type="password" placeholder="PASSWORD" autocomplete="current-password">
+    <button id="authSubmit" class="btn pink" style="width:100%">SYNC EXISTING NODE</button>`;
+  $("authMsg").textContent="";$("authSubmit").onclick=()=>submitAuth(mode);
+}
+$("showRegister").onclick=()=>renderAuth("register");
+$("showLogin").onclick=()=>renderAuth("login");
+
+async function submitAuth(mode){
+  const u=$("aUser").value.trim().toLowerCase(),p=$("aPass").value;
+  $("authMsg").textContent="";
+  if(!sb){$("authMsg").textContent="Configure SUPABASE_URL and SUPABASE_ANON_KEY in index.html first.";return}
+  if(!/^[a-z0-9_]{3,24}$/.test(u)){$("authMsg").textContent="Username: 3-24 chars, a-z / 0-9 / underscore.";return}
+  if(p.length<8){$("authMsg").textContent="Password must be at least 8 characters.";return}
+  if(mode==="register"&&p!==$("aPass2").value){$("authMsg").textContent="Passwords do not match.";return}
+  try{
+    if(mode==="register"){
+      const name=$("aName").value.trim()||u;
+      const {data,error}=await sb.auth.signUp({email:emailFor(u),password:p,options:{data:{username:u,display_name:name}}});
+      if(error)throw error;
+      if(data.user){
+        const {error:e2}=await sb.from("profiles").upsert({id:data.user.id,username:u,display_name:name,about:"",avatar_url:null,last_seen:new Date().toISOString()},{onConflict:"id"});
+        if(e2)throw e2;
+        toast("IDENTITY CREATED");
+      }
+    }else{
+      const {error}=await sb.auth.signInWithPassword({email:emailFor(u),password:p});
+      if(error)throw error;
+    }
+  }catch(e){$("authMsg").textContent=e.message}
+}
+
+async function boot(){
+  if(SUPABASE_URL.includes("YOUR-PROJECT"))return;
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+  const {data}=await sb.auth.getSession();
+  if(data.session)await onSignedIn(data.session.user);
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(session&&event!=="SIGNED_OUT")await onSignedIn(session.user);
+    if(event==="SIGNED_OUT")location.reload();
+  });
+}
+async function onSignedIn(user){
+  currentUser=user;
+  const {data,error}=await sb.from("profiles").select("*").eq("id",user.id).single();
+  if(error){toast("Profile table not ready: "+error.message);return}
+  currentProfile=data;
+  $("auth").classList.add("hidden");$("app").classList.remove("hidden");
+  $("meBox").innerHTML=`<div class="avatar">${data.avatar_url?`<img src="${esc(data.avatar_url)}">`:"◈"}</div><div><b>${esc(data.display_name||data.username)}</b><div class="sub">@${esc(data.username)}</div></div>`;
+  $("nodeStatus").innerHTML=`<span class="online"></span> ONLINE<br><span class="small">${esc(data.about||"No about set.")}</span>`;
+  await sb.from("profiles").update({last_seen:new Date().toISOString()}).eq("id",user.id);
+  subscribeRealtime();loadChats();requestNotifications();
+}
+
+/* =========================================================
+3. USERS / CHATS
+========================================================= */
+$("userSearch").oninput=async e=>{
+  const q=e.target.value.trim().toLowerCase();if(!q){$("searchResults").innerHTML="";return}
+  const {data,error}=await sb.from("profiles").select("id,username,display_name,avatar_url,about,last_seen").ilike("username",`%${q}%`).neq("id",currentUser.id).limit(12);
+  if(error){$("searchResults").innerHTML=`<div class="sub" style="padding:10px">${esc(error.message)}</div>`;return}
+  $("searchResults").innerHTML=(data||[]).map(p=>`<div class="chat" onclick='startChat(${JSON.stringify(p)})'><div class="avatar">${p.avatar_url?`<img src="${esc(p.avatar_url)}">`:"◈"}</div><div><b>${esc(p.display_name||p.username)}</b><div class="preview">@${esc(p.username)}</div></div></div>`).join("");
+};
+window.startChat=async p=>{
+  activePeer=p;activeConversation=conversationId(currentUser.id,p.id);
+  $("chatHead").innerHTML=`<div class="avatar">${p.avatar_url?`<img src="${esc(p.avatar_url)}">`:"◈"}</div><div><b>${esc(p.display_name||p.username)}</b><div class="sub">@${esc(p.username)} · <span id="peerPresence">checking...</span></div></div>`;
+  $("messageInput").disabled=false;$("sendBtn").disabled=false;$("searchResults").innerHTML="";$("userSearch").value="";
+  await loadMessages();
+};
+async function loadChats(){
+  const {data,error}=await sb.from("messages").select("sender_id,receiver_id,body,created_at").or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`).order("created_at",{ascending:false}).limit(300);
+  if(error)return;
+  const seen=new Set(),rows=[];
+  for(const m of data||[]){const peer=m.sender_id===currentUser.id?m.receiver_id:m.sender_id;if(seen.has(peer))continue;seen.add(peer);rows.push({peer,last:m.body,at:m.created_at})}
+  if(!rows.length){$("chatList").innerHTML=`<div class="sub" style="padding:15px">NO CHATS YET</div>`;return}
+  const ids=rows.map(x=>x.peer),{data:ps}=await sb.from("profiles").select("id,username,display_name,avatar_url").in("id",ids),map=new Map((ps||[]).map(x=>[x.id,x]));
+  $("chatList").innerHTML=rows.map(x=>{const p=map.get(x.peer)||{username:"unknown"};return `<div class="chat" onclick='startChat(${JSON.stringify(p)})'><div class="avatar">${p.avatar_url?`<img src="${esc(p.avatar_url)}">`:"◈"}</div><div style="min-width:0"><b>${esc(p.display_name||p.username)}</b><div class="preview">${esc(x.last||"media")}</div></div></div>`}).join("");
+}
+async function loadMessages(){
+  $("messages").innerHTML="";
+  const {data,error}=await sb.from("messages").select("*").eq("conversation_id",activeConversation).order("created_at",{ascending:true}).limit(500);
+  if(error){$("messages").innerHTML=`<div class="empty">${esc(error.message)}<br><span class="small">Run the SQL schema in the HTML comments.</span></div>`;return}
+  for(const m of data||[])renderMessage(m);
+  $("messages").scrollTop=$("messages").scrollHeight;
+  await sb.from("messages").update({read_at:new Date().toISOString(),delivered_at:new Date().toISOString()}).eq("conversation_id",activeConversation).eq("receiver_id",currentUser.id).is("read_at",null);
+}
+function renderMessage(m){
+  const mine=m.sender_id===currentUser.id,el=document.createElement("div");el.className="bubble "+(mine?"mine":"");
+  let body=esc(m.body||"");
+  if(m.media_url){
+    if((m.media_type||"").startsWith("image/"))body+=`<img class="media" src="${esc(m.media_url)}" alt="image">`;
+    else if((m.media_type||"").startsWith("video/"))body+=`<video class="media" controls src="${esc(m.media_url)}"></video>`;
+    else body+=`<a href="${esc(m.media_url)}" target="_blank" rel="noopener">OPEN FILE: ${esc(m.file_name||"attachment")}</a>`;
+  }
+  const ticks=mine?(m.read_at?"✓✓":"✓"):"";
+  el.innerHTML=`<div>${body||"<i>media</i>"}</div><div class="meta">${time(m.created_at)} ${ticks} <button class="btn tiny" data-id="${m.id}" data-act="react">☺</button> <button class="btn tiny" data-id="${m.id}" data-act="more">•••</button></div>`;
+  el.querySelector('[data-act="react"]').onclick=()=>react(m.id);
+  el.querySelector('[data-act="more"]').onclick=()=>messageMenu(m);
+  $("messages").appendChild(el);
+}
+async function sendMessage(body="",file=null){
+  if(!activePeer)return;
+  let media_url=null,media_type=null,file_name=null;
+  if(file){
+    const path=`${currentUser.id}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
+    const up=await sb.storage.from("media").upload(path,file,{upsert:false});
+    if(up.error){toast("Upload failed: "+up.error.message);return}
+    media_url=sb.storage.from("media").getPublicUrl(path).data.publicUrl;media_type=file.type;file_name=file.name;
+  }
+  const {error}=await sb.from("messages").insert({conversation_id:activeConversation,sender_id:currentUser.id,receiver_id:activePeer.id,body:body.trim(),media_url,media_type,file_name,delivered_at:new Date().toISOString()});
+  if(error)toast(error.message);
+}
+$("sendBtn").onclick=()=>{const v=$("messageInput").value;if(v.trim()){sendMessage(v);$("messageInput").value=""}};
+$("messageInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("sendBtn").click()}else sendTyping()});
+$("attachBtn").onclick=()=>$("fileInput").click();
+$("fileInput").onchange=async e=>{for(const f of e.target.files)await sendMessage("",f);e.target.value=""};
+$("emojiBtn").onclick=()=>{$("messageInput").value+=" ❤️";$("messageInput").focus()};
+
+async function react(messageId){
+  const emoji=prompt("Reaction emoji","❤️");if(!emoji)return;
+  await sb.from("message_reactions").upsert({message_id:messageId,user_id:currentUser.id,emoji},{onConflict:"message_id,user_id"});
+}
+async function messageMenu(m){
+  showModal(`<h2>MESSAGE ACTIONS</h2>
+  <button class="btn" style="width:100%;margin:4px 0" id="replyM">REPLY</button>
+  <button class="btn" style="width:100%;margin:4px 0" id="starM">STAR / BOOKMARK</button>
+  <button class="btn" style="width:100%;margin:4px 0" id="pinM">PIN</button>
+  <button class="btn" style="width:100%;margin:4px 0" id="forwardM">FORWARD</button>
+  ${m.sender_id===currentUser.id?`<button class="btn pink" style="width:100%;margin:4px 0" id="delM">DELETE FOR EVERYONE</button>`:""}
+  <button class="btn" style="width:100%;margin-top:10px" onclick="closeModal()">CLOSE</button>`);
+  $("replyM").onclick=()=>{closeModal();$("messageInput").value="↪ "+(m.body||"")+" | ";$("messageInput").focus()};
+  $("starM").onclick=async()=>{await sb.from("starred_messages").upsert({message_id:m.id,user_id:currentUser.id},{onConflict:"message_id,user_id"});closeModal()};
+  $("pinM").onclick=async()=>{await sb.from("pinned_messages").upsert({message_id:m.id,conversation_id:m.conversation_id,pinned_by:currentUser.id},{onConflict:"message_id"});closeModal()};
+  $("forwardM").onclick=()=>{closeModal();toast("Forward: choose another chat, then resend the text.")};
+  if($("delM"))$("delM").onclick=async()=>{await sb.from("messages").update({body:"This message was deleted.",media_url:null,deleted_at:new Date().toISOString()}).eq("id",m.id).eq("sender_id",currentUser.id);closeModal()};
+}
+
+/* =========================================================
+4. REALTIME / PRESENCE / TYPING
+========================================================= */
+function subscribeRealtime(){
+  if(realtime)sb.removeChannel(realtime);
+  realtime=sb.channel("global-node")
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{
+      const m=payload.new;
+      if(m.conversation_id===activeConversation){renderMessage(m);$("messages").scrollTop=$("messages").scrollHeight}
+      loadChats();
+    })
+    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},payload=>{if(payload.new.conversation_id===activeConversation)loadMessages()})
+    .subscribe();
+
+  if(presenceChannel)sb.removeChannel(presenceChannel);
+  presenceChannel=sb.channel("presence",{config:{presence:{key:currentUser.id}}});
+  presenceChannel.on("presence",{event:"sync"},updatePresence)
+    .on("presence",{event:"join"},updatePresence)
+    .on("presence",{event:"leave"},updatePresence)
+    .subscribe(async status=>{if(status==="SUBSCRIBED")await presenceChannel.track({user_id:currentUser.id,online_at:new Date().toISOString()})});
+}
+function updatePresence(){
+  const state=presenceChannel.presenceState();
+  if(activePeer&&state[activePeer.id])$("peerPresence").textContent="online";
+}
+function sendTyping(){
+  if(!presenceChannel||!activePeer)return;
+  clearTimeout(typingTimer);$("typing").textContent="Typing...";
+  presenceChannel.track({user_id:currentUser.id,typing_to:activePeer.id,typing:true});
+  typingTimer=setTimeout(()=>{$("typing").textContent="";presenceChannel.track({user_id:currentUser.id,typing_to:activePeer.id,typing:false})},1200);
+}
+
+/* =========================================================
+5. PROFILE / STATUS / SETTINGS
+========================================================= */
+$("profileBtn").onclick=async()=>{
+  showModal(`<h2>YOUR PROFILE</h2>
+  <input id="pName" class="field" value="${esc(currentProfile.display_name||"")}">
+  <textarea id="pAbout" class="field" placeholder="ABOUT">${esc(currentProfile.about||"")}</textarea>
+  <input id="pAvatar" class="field" type="file" accept="image/*">
+  <button class="btn good" id="saveProfile" style="width:100%">SAVE PROFILE</button>
+  <button class="btn" id="closeP" style="width:100%;margin-top:6px">CLOSE</button>`);
+  $("closeP").onclick=closeModal;
+  $("saveProfile").onclick=async()=>{
+    let avatar_url=currentProfile.avatar_url,f=$("pAvatar").files[0];
+    if(f){
+      const path=`avatars/${currentUser.id}_${Date.now()}.${f.name.split(".").pop()}`;
+      const up=await sb.storage.from("media").upload(path,f,{upsert:true});
+      if(!up.error)avatar_url=sb.storage.from("media").getPublicUrl(path).data.publicUrl;
+    }
+    const {data,error}=await sb.from("profiles").update({display_name:$("pName").value.trim(),about:$("pAbout").value.trim(),avatar_url}).eq("id",currentUser.id).select().single();
+    if(error)toast(error.message);else{currentProfile=data;$("meBox").innerHTML=`<div class="avatar">${data.avatar_url?`<img src="${esc(data.avatar_url)}">`:"◈"}</div><div><b>${esc(data.display_name)}</b><div class="sub">@${esc(data.username)}</div></div>`;closeModal()}
+  }
+};
+$("settingsBtn").onclick=()=>{
+  showModal(`<h2>PRIVACY / SETTINGS</h2>
+  <div class="setting">Last seen<select id="sLast" class="field"><option>everyone</option><option>contacts</option><option>nobody</option></select></div>
+  <div class="setting">Profile photo<select id="sPhoto" class="field"><option>everyone</option><option>contacts</option><option>nobody</option></select></div>
+  <div class="setting">Status<select id="sStatus" class="field"><option>everyone</option><option>contacts</option><option>nobody</option></select></div>
+  <div class="setting"><button class="btn" id="notifBtn">ENABLE BROWSER NOTIFICATIONS</button></div>
+  <button class="btn good" id="savePrivacy" style="width:100%">SAVE</button>`);
+  $("savePrivacy").onclick=async()=>{await sb.from("privacy_settings").upsert({user_id:currentUser.id,last_seen:$("sLast").value,profile_photo:$("sPhoto").value,status:$("sStatus").value},{onConflict:"user_id"});closeModal();toast("SETTINGS SAVED")};
+  $("notifBtn").onclick=requestNotifications;
+};
+async function requestNotifications(){if("Notification" in window&&Notification.permission==="default")await Notification.requestPermission()}
+$("statusBtn").onclick=()=>{
+  showModal(`<h2>24H STATUS</h2><textarea id="stText" class="field" placeholder="WRITE A STATUS..."></textarea><input id="stFile" class="field" type="file" accept="image/*,video/*"><button class="btn good" id="postStatus" style="width:100%">POST STATUS</button><div class="sub" style="margin-top:10px">Rows expire automatically after 24 hours.</div>`);
+  $("postStatus").onclick=async()=>{
+    let media_url=null,media_type=null,f=$("stFile").files[0];
+    if(f){
+      const path=`status/${currentUser.id}_${Date.now()}_${f.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
+      const up=await sb.storage.from("media").upload(path,f);
+      if(up.error){toast(up.error.message);return}
+      media_url=sb.storage.from("media").getPublicUrl(path).data.publicUrl;media_type=f.type;
+    }
+    await sb.from("statuses").insert({user_id:currentUser.id,text:$("stText").value.trim(),media_url,media_type,expires_at:new Date(Date.now()+86400000).toISOString()});
+    closeModal();toast("STATUS POSTED");
+  }
+};
+$("archiveBtn").onclick=()=>toast("Archive view can be extended with an archived flag on conversations.");
+$("newChatBtn").onclick=()=>{$("userSearch").focus();toast("Search a username to start a chat.")};
+
+/* =========================================================
+6. BLOCK / REPORT HELPERS
+========================================================= */
+async function blockPeer(){
+  if(!activePeer)return;
+  await sb.from("blocks").upsert({blocker_id:currentUser.id,blocked_id:activePeer.id},{onConflict:"blocker_id,blocked_id"});
+  toast("USER BLOCKED");activePeer=null;
+}
+async function reportPeer(reason="Abuse"){
+  if(!activePeer)return;
+  await sb.from("reports").insert({reporter_id:currentUser.id,reported_id:activePeer.id,reason});
+  toast("REPORT SUBMITTED");
+}
+
+/* =========================================================
+7. WEBRTC CALLING
+This is the client-side call starter. A production deployment needs:
+- realtime signaling for offer/answer/ICE,
+- a TURN server for reliable NAT traversal,
+- incoming-call UI,
+- call permissions and abuse controls.
+========================================================= */
+async function startCall(video=false){
+  if(!activePeer){toast("Select a chat first.");return}
+  $("callBox").classList.remove("hidden");$("callText").textContent="REQUESTING MEDIA...";
+  try{
+    localStream=await navigator.mediaDevices.getUserMedia({audio:true,video});
+    $("localVideo").srcObject=localStream;
+    pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+    localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+    pc.ontrack=e=>$("remoteVideo").srcObject=e.streams[0];
+    pc.onicecandidate=async e=>{if(e.candidate)await sb.from("call_signals").insert({caller_id:currentUser.id,callee_id:activePeer.id,type:"ice",payload:e.candidate.toJSON()})};
+    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
+    await sb.from("call_signals").insert({caller_id:currentUser.id,callee_id:activePeer.id,type:"offer",payload:offer});
+    $("callText").textContent="CALLING...";
+  }catch(e){$("callText").textContent=e.message}
+}
+$("audioCallBtn").onclick=()=>startCall(false);
+$("videoCallBtn").onclick=()=>startCall(true);
+$("hangupBtn").onclick=()=>{
+  if(pc)pc.close();
+  if(localStream)localStream.getTracks().forEach(t=>t.stop());
+  pc=null;localStream=null;$("callBox").classList.add("hidden");
+};
+$("logoutBtn").onclick=async()=>{if(sb)await sb.auth.signOut()};
+
+/* Start */
+boot();
+</script>
+
+<!--
+=============================================================
+SUPABASE SQL SETUP
+Run this in Supabase SQL Editor BEFORE using the app.
+=============================================================
+
+create extension if not exists pgcrypto;
+
+create table if not exists public.profiles (
+ id uuid primary key references auth.users(id) on delete cascade,
+ username text unique not null,
+ display_name text not null,
+ about text default '',
+ avatar_url text,
+ last_seen timestamptz default now(),
+ created_at timestamptz default now()
+);
+
+create table if not exists public.messages (
+ id uuid primary key default gen_random_uuid(),
+ conversation_id text not null,
+ sender_id uuid not null references public.profiles(id) on delete cascade,
+ receiver_id uuid not null references public.profiles(id) on delete cascade,
+ body text default '',
+ media_url text,
+ media_type text,
+ file_name text,
+ delivered_at timestamptz,
+ read_at timestamptz,
+ deleted_at timestamptz,
+ created_at timestamptz default now()
+);
+create index if not exists messages_conversation_created on public.messages(conversation_id,created_at);
+
+create table if not exists public.message_reactions(
+ message_id uuid references public.messages(id) on delete cascade,
+ user_id uuid references public.profiles(id) on delete cascade,
+ emoji text not null,
+ created_at timestamptz default now(),
+ primary key(message_id,user_id)
+);
+
+create table if not exists public.starred_messages(
+ message_id uuid references public.messages(id) on delete cascade,
+ user_id uuid references public.profiles(id) on delete cascade,
+ created_at timestamptz default now(),
+ primary key(message_id,user_id)
+);
+
+create table if not exists public.pinned_messages(
+ message_id uuid primary key references public.messages(id) on delete cascade,
+ conversation_id text not null,
+ pinned_by uuid references public.profiles(id) on delete cascade,
+ created_at timestamptz default now()
+);
+
+create table if not exists public.statuses(
+ id uuid primary key default gen_random_uuid(),
+ user_id uuid references public.profiles(id) on delete cascade,
+ text text default '',
+ media_url text,
+ media_type text,
+ expires_at timestamptz not null,
+ created_at timestamptz default now()
+);
+
+create table if not exists public.privacy_settings(
+ user_id uuid primary key references public.profiles(id) on delete cascade,
+ last_seen text default 'everyone',
+ profile_photo text default 'everyone',
+ status text default 'everyone'
+);
+
+create table if not exists public.blocks(
+ blocker_id uuid references public.profiles(id) on delete cascade,
+ blocked_id uuid references public.profiles(id) on delete cascade,
+ created_at timestamptz default now(),
+ primary key(blocker_id,blocked_id)
+);
+
+create table if not exists public.reports(
+ id uuid primary key default gen_random_uuid(),
+ reporter_id uuid references public.profiles(id) on delete cascade,
+ reported_id uuid references public.profiles(id) on delete cascade,
+ reason text,
+ created_at timestamptz default now()
+);
+
+create table if not exists public.call_signals(
+ id uuid primary key default gen_random_uuid(),
+ caller_id uuid references public.profiles(id) on delete cascade,
+ callee_id uuid references public.profiles(id) on delete cascade,
+ type text not null,
+ payload jsonb not null,
+ created_at timestamptz default now()
+);
+
+-- RLS
+alter table public.profiles enable row level security;
+alter table public.messages enable row level security;
+alter table public.message_reactions enable row level security;
+alter table public.starred_messages enable row level security;
+alter table public.pinned_messages enable row level security;
+alter table public.statuses enable row level security;
+alter table public.privacy_settings enable row level security;
+alter table public.blocks enable row level security;
+alter table public.reports enable row level security;
+alter table public.call_signals enable row level security;
+
+create policy "profiles read" on public.profiles for select to authenticated using (true);
+create policy "profiles insert own" on public.profiles for insert to authenticated with check (id=auth.uid());
+create policy "profiles update own" on public.profiles for update to authenticated using (id=auth.uid()) with check (id=auth.uid());
+
+create policy "messages read participant" on public.messages for select to authenticated using (sender_id=auth.uid() or receiver_id=auth.uid());
+create policy "messages insert sender" on public.messages for insert to authenticated with check (sender_id=auth.uid());
+create policy "messages update participant" on public.messages for update to authenticated using (sender_id=auth.uid() or receiver_id=auth.uid());
+
+create policy "reactions read" on public.message_reactions for select to authenticated using (true);
+create policy "reactions own" on public.message_reactions for insert to authenticated with check (user_id=auth.uid());
+create policy "reactions delete own" on public.message_reactions for delete to authenticated using (user_id=auth.uid());
+
+create policy "star own" on public.starred_messages for all to authenticated using (user_id=auth.uid()) with check (user_id=auth.uid());
+create policy "pin own" on public.pinned_messages for all to authenticated using (pinned_by=auth.uid()) with check (pinned_by=auth.uid());
+
+create policy "status read" on public.statuses for select to authenticated using (expires_at>now());
+create policy "status own" on public.statuses for insert to authenticated with check (user_id=auth.uid());
+create policy "status delete own" on public.statuses for delete to authenticated using (user_id=auth.uid());
+
+create policy "privacy own" on public.privacy_settings for all to authenticated using (user_id=auth.uid()) with check (user_id=auth.uid());
+create policy "block own" on public.blocks for all to authenticated using (blocker_id=auth.uid()) with check (blocker_id=auth.uid());
+create policy "reports insert" on public.reports for insert to authenticated with check (reporter_id=auth.uid());
+
+create policy "calls participants" on public.call_signals for select to authenticated using (caller_id=auth.uid() or callee_id=auth.uid());
+create policy "calls insert caller" on public.call_signals for insert to authenticated with check (caller_id=auth.uid());
+
+-- Storage:
+-- Create a PUBLIC bucket named "media" in Supabase Storage.
+-- For private media, switch the code to signed URLs and add storage RLS.
+
+-- Realtime:
+-- Dashboard > Database > Replication:
+-- enable realtime for public.messages and public.call_signals.
+
+=============================================================
+PRODUCTION GATE
+=============================================================
+The "sana7277" check in this file is deliberately documented as a UI
+gate. A static HTML file cannot hide a secret from someone who downloads
+it. For the requirement "without this passcode no access and source code
+cannot bypass it", the HTML must sit BEHIND a server/Edge Function or
+reverse proxy that checks the passcode before serving index.html.
+
+Do not put a service_role key in this file.
+=============================================================
+-->
 </body>
 </html>
-
